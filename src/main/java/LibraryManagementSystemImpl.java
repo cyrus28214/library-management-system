@@ -18,7 +18,47 @@ public class LibraryManagementSystemImpl implements LibraryManagementSystem {
 
     @Override
     public ApiResult storeBook(Book book) {
-        return new ApiResult(false, "Unimplemented Function");
+        Connection conn = connector.getConn();
+
+        try {
+            // first check if the book already exists
+            // we assume that two books are equal iff their category...author are equal
+            String checkSql = "SELECT count(*) FROM book WHERE category = ? AND title = ? AND press = ? AND publish_year = ? AND author = ?";
+            PreparedStatement checkStmt = conn.prepareStatement(checkSql);
+            checkStmt.setString(1, book.getCategory());
+            checkStmt.setString(2, book.getTitle());
+            checkStmt.setString(3, book.getPress());
+            checkStmt.setInt(4, book.getPublishYear());
+            checkStmt.setString(5, book.getAuthor());
+            ResultSet checkRs = checkStmt.executeQuery();
+            if (checkRs.next() && checkRs.getInt(1) > 0) {
+                return new ApiResult(false, "Book already exists");
+            }
+
+            // if the book does not exist, insert it
+            String insertSql = "INSERT INTO book (category, title, press, publish_year, author, price, stock) VALUES (?, ?, ?, ?, ?, ?, ?)";
+            PreparedStatement insertStmt = conn.prepareStatement(insertSql, Statement.RETURN_GENERATED_KEYS);
+            insertStmt.setString(1, book.getCategory());
+            insertStmt.setString(2, book.getTitle());
+            insertStmt.setString(3, book.getPress());
+            insertStmt.setInt(4, book.getPublishYear());
+            insertStmt.setString(5, book.getAuthor());
+            insertStmt.setDouble(6, book.getPrice());
+            insertStmt.setInt(7, book.getStock());
+            
+            insertStmt.executeUpdate();
+
+            ResultSet insertRs = insertStmt.getGeneratedKeys();
+            if (insertRs.next()) {
+                book.setBookId(insertRs.getInt(1));
+            }
+
+            commit(conn);
+            return new ApiResult(true, null);
+        } catch (Exception e) {
+            rollback(conn);
+            return new ApiResult(false, e.getMessage());
+        }
     }
 
     @Override
