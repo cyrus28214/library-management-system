@@ -212,8 +212,8 @@ public class LibraryManagementSystemImpl implements LibraryManagementSystem {
     public ApiResult modifyBookInfo(Book book) {
         Connection conn = connector.getConn();
         try {
-            // check if the book exists
-            String checkExistSql = "SELECT stock FROM book WHERE book_id = ? FOR UPDATE"; // lock the row
+            // 检查图书是否存在
+            String checkExistSql = "SELECT stock FROM book WHERE book_id = ?";
             PreparedStatement checkExistStmt = conn.prepareStatement(checkExistSql);
             checkExistStmt.setInt(1, book.getBookId());
             ResultSet existRs = checkExistStmt.executeQuery();
@@ -222,7 +222,7 @@ public class LibraryManagementSystemImpl implements LibraryManagementSystem {
                 return new ApiResult(false, "Book not found");
             }
 
-            // check if the modified info is duplicated with other books
+            // 检查修改后的信息是否与其他图书重复
             String checkDupSql = "SELECT count(*) FROM book WHERE category = ? AND title = ? AND press = ? AND publish_year = ? AND author = ? AND book_id != ?";
             PreparedStatement checkDupStmt = conn.prepareStatement(checkDupSql);
             checkDupStmt.setString(1, book.getCategory());
@@ -237,7 +237,7 @@ public class LibraryManagementSystemImpl implements LibraryManagementSystem {
                 return new ApiResult(false, "Book with same info already exists");
             }
 
-            // update the book info (do not modify book_id and stock)
+            // 更新图书信息(不修改book_id和stock)
             String updateSql = "UPDATE book SET category = ?, title = ?, press = ?, publish_year = ?, author = ?, price = ? WHERE book_id = ?";
             PreparedStatement updateStmt = conn.prepareStatement(updateSql);
             updateStmt.setString(1, book.getCategory());
@@ -327,6 +327,9 @@ public class LibraryManagementSystemImpl implements LibraryManagementSystem {
                         break;
                     case PRICE:
                         sql.append("price");
+                        break;
+                    case STOCK:
+                        sql.append("stock");
                         break;
                     default:
                         sql.append("book_id");
