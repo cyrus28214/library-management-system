@@ -7,6 +7,7 @@ import utils.DatabaseConnector;
 
 import java.sql.*;
 import java.util.List;
+import java.util.ArrayList;
 
 public class LibraryManagementSystemImpl implements LibraryManagementSystem {
 
@@ -83,7 +84,118 @@ public class LibraryManagementSystemImpl implements LibraryManagementSystem {
 
     @Override
     public ApiResult queryBook(BookQueryConditions conditions) {
-        return new ApiResult(false, "Unimplemented Function");
+        try {
+            StringBuilder sql = new StringBuilder();
+            List<Object> params = new ArrayList<>();
+            
+            sql.append("SELECT * FROM book WHERE 1=1 ");
+            
+            // conditions
+            if (conditions.getCategory() != null) {
+                sql.append("AND category = ? ");
+                params.add(conditions.getCategory()); // exact matching
+            }
+            
+            if (conditions.getTitle() != null) {
+                sql.append("AND title LIKE ? ");
+                params.add("%" + conditions.getTitle() + "%");  // fuzzy matching
+            }
+            
+            if (conditions.getPress() != null) {
+                sql.append("AND press LIKE ? ");
+                params.add("%" + conditions.getPress() + "%");  // fuzzy matching
+            }
+            
+            if (conditions.getAuthor() != null) {
+                sql.append("AND author LIKE ? ");
+                params.add("%" + conditions.getAuthor() + "%");  // fuzzy matching
+            }
+            
+            if (conditions.getMinPublishYear() != null) {
+                sql.append("AND publish_year >= ? ");
+                params.add(conditions.getMinPublishYear());
+            }
+            if (conditions.getMaxPublishYear() != null) {
+                sql.append("AND publish_year <= ? ");
+                params.add(conditions.getMaxPublishYear());
+            }
+            
+            if (conditions.getMinPrice() != null) {
+                sql.append("AND price >= ? ");
+                params.add(conditions.getMinPrice());
+            }
+            if (conditions.getMaxPrice() != null) {
+                sql.append("AND price <= ? ");
+                params.add(conditions.getMaxPrice());
+            }
+
+            sql.append("ORDER BY ");
+            if (conditions.getSortBy() != null) {
+                switch (conditions.getSortBy()) {
+                    case BOOK_ID:
+                        sql.append("book_id");
+                        break;
+                    case CATEGORY:
+                        sql.append("category");
+                        break;
+                    case TITLE:
+                        sql.append("title");
+                        break;
+                    case PRESS:
+                        sql.append("press");
+                        break;
+                    case PUBLISH_YEAR:
+                        sql.append("publish_year");
+                        break;
+                    case AUTHOR:
+                        sql.append("author");
+                        break;
+                    case PRICE:
+                        sql.append("price");
+                        break;
+                    default:
+                        sql.append("book_id");
+                }
+            } else {
+                sql.append("book_id");
+            }
+            
+            sql.append(conditions.getSortOrder() == SortOrder.ASC ? " ASC" : " DESC");
+            
+            // if the primary sort field is not book_id, add book_id as the secondary sort
+            if (conditions.getSortBy() != Book.SortColumn.BOOK_ID) {
+                sql.append(", book_id ASC");
+            }
+            
+            try (PreparedStatement stmt = connector.getConn().prepareStatement(sql.toString())) {
+                // set parameters
+                for (int i = 0; i < params.size(); i++) {
+                    stmt.setObject(i + 1, params.get(i));
+                }
+                
+                ResultSet rs = stmt.executeQuery();
+                List<Book> books = new ArrayList<>();
+                while (rs.next()) {
+                    Book book = new Book();
+                    book.setBookId(rs.getInt("book_id"));
+                    book.setCategory(rs.getString("category"));
+                    book.setTitle(rs.getString("title"));
+                    book.setPress(rs.getString("press"));
+                    book.setPublishYear(rs.getInt("publish_year"));
+                    book.setAuthor(rs.getString("author"));
+                    book.setPrice(rs.getDouble("price"));
+                    book.setStock(rs.getInt("stock"));
+                    books.add(book);
+                }
+                
+                BookQueryResults results = new BookQueryResults(books);
+                
+                return new ApiResult(true, results);
+            }
+            
+        } catch (Exception e) {
+            return new ApiResult(false, e.getMessage());
+        }
     }
 
     @Override
