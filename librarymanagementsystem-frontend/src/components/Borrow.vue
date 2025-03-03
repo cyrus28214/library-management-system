@@ -1,3 +1,36 @@
+<script setup>
+import { Search } from '@element-plus/icons-vue';
+import { ref, computed } from 'vue';
+import axios from 'axios';
+
+const isShow = ref(false); // 结果表格展示状态
+const tableData = ref([{
+    cardID: 1,
+    bookID: 1,
+    borrowTime: "2024.03.04 21:48",
+    returnTime: "2024.03.04 21:49"
+}]);
+const toQuery = ref(''); // 待查询内容(对某一借书证号进行查询)
+const toSearch = ref(''); // 待搜索内容(对查询到的结果进行搜索)
+
+const fitlerTableData = computed(() => tableData.value.filter(
+    (tuple) =>
+        (toSearch.value == '') || // 搜索框为空，即不搜索
+        tuple.bookID == toSearch.value || // 图书号与搜索要求一致
+        tuple.borrowTime.toString().includes(toSearch.value) || // 借出时间包含搜索要求
+        tuple.returnTime.toString().includes(toSearch.value) // 归还时间包含搜索要求
+));
+
+const QueryBorrows = async () => {
+    tableData.value = [];
+    let response = await axios.get('/borrow', { params: { cardID: toQuery } }) // 向/borrow发出GET请求，参数为cardID=toQuery
+    let borrows = response.data // 获取响应负载
+    borrows.forEach(borrow => { // 对于每一个借书记录
+        tableData.value.push(borrow) // 将它加入到列表项中
+    });
+}
+</script>
+
 <template>
     <el-scrollbar height="100%" style="width: 100%;">
 
@@ -12,7 +45,7 @@
         <!-- 查询框 -->
         <div style="width:30%;margin:0 auto; padding-top:5vh;">
 
-            <el-input v-model="this.toQuery" style="display:inline; " placeholder="输入借书证ID"></el-input>
+            <el-input v-model="toQuery" style="display:inline; " placeholder="输入借书证ID"></el-input>
             <el-button style="margin-left: 10px;" type="primary" @click="QueryBorrows">查询</el-button>
 
         </div>
@@ -29,47 +62,3 @@
 
     </el-scrollbar>
 </template>
-
-<script>
-import axios from 'axios';
-import { Search } from '@element-plus/icons-vue'
-
-export default {
-    data() {
-        return {
-            isShow: false, // 结果表格展示状态
-            tableData: [{ // 列表项
-                cardID: 1,
-                bookID: 1,
-                borrowTime: "2024.03.04 21:48",
-                returnTime: "2024.03.04 21:49"
-            }],
-            toQuery: '', // 待查询内容(对某一借书证号进行查询)
-            toSearch: '', // 待搜索内容(对查询到的结果进行搜索)
-            Search
-        }
-    },
-    computed: {
-        fitlerTableData() { // 搜索规则
-            return this.tableData.filter(
-                (tuple) =>
-                    (this.toSearch == '') || // 搜索框为空，即不搜索
-                    tuple.bookID == this.toSearch || // 图书号与搜索要求一致
-                    tuple.borrowTime.toString().includes(this.toSearch) || // 借出时间包含搜索要求
-                    tuple.returnTime.toString().includes(this.toSearch) // 归还时间包含搜索要求
-            )
-        }
-    },
-    methods: {
-        async QueryBorrows() {
-            this.tableData = [] // 清空列表
-            let response = await axios.get('/borrow', { params: { cardID: this.toQuery } }) // 向/borrow发出GET请求，参数为cardID=this.toQuery
-            let borrows = response.data // 获取响应负载
-            borrows.forEach(borrow => { // 对于每一个借书记录
-                this.tableData.push(borrow) // 将它加入到列表项中
-            });
-            this.isShow = true // 显示结果列表
-        }
-    }
-}
-</script>

@@ -1,3 +1,7 @@
+<script setup>
+import { RouterView } from 'vue-router';
+</script>
+
 <template>
   <div>
     <div class="main" style="overflow-y: hidden; ">
@@ -47,17 +51,7 @@
       </el-container>
     </div>
   </div>
-
-
-
 </template>
-
-<script>
-import { RouterView } from 'vue-router'
-
-export default {
-}
-</script>
 
 <style scoped>
 #app {

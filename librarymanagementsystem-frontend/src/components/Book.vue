@@ -6,7 +6,3 @@
 
     </el-scrollbar>
 </template>
-
-<script>
-
-</script>

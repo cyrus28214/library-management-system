@@ -1,3 +1,113 @@
+<script setup>
+import { Delete, Edit, Search } from '@element-plus/icons-vue';
+import { ElMessage } from 'element-plus';
+import axios from 'axios';
+import { ref, onMounted } from 'vue';
+
+const cards = ref([{ // 借书证列表
+    id: 1,
+    name: '小明',
+    department: '计算机学院',
+    type: '学生'
+}, {
+    id: 2,
+    name: '王老师',
+    department: '计算机学院',
+    type: '教师'
+}
+]);
+
+const toSearch = ref(''); // 搜索内容
+const types = ref([{ // 借书证类型
+    value: '教师',
+    label: '教师',
+}, {
+    value: '学生',
+    label: '学生',
+}]);
+
+const newCardVisible = ref(false); // 新建借书证对话框可见性
+const removeCardVisible = ref(false); // 删除借书证对话框可见性
+const toRemove = ref(0); // 待删除借书证号
+const newCardInfo = ref({ // 待新建借书证信息
+    name: '',
+    department: '',
+    type: '学生'
+});
+
+const modifyCardVisible = ref(false); // 修改信息对话框可见性
+const toModifyInfo = ref({ // 待修改借书证信息
+    id: 0,
+    name: '',
+    department: '',
+    type: '学生'
+});
+
+const ConfirmNewCard = async () => {
+    // 发出POST请求
+    const response = await axios.post("/card", { // 请求体
+        name: newCardInfo.value.name,
+        department: newCardInfo.value.department,
+        type: newCardInfo.value.type
+    });
+
+    ElMessage.success("借书证新建成功") // 显示消息提醒
+    newCardVisible.value = false // 将对话框设置为不可见
+    QueryCards() // 重新查询借书证以刷新页面
+}
+
+const ConfirmModifyCard = async () => {
+    // TODO: YOUR CODE HERE
+}
+
+const ConfirmRemoveCard = async () => {
+    // TODO: YOUR CODE HERE
+}
+
+const QueryCards = async () => {
+    cards.value = [] // 清空列表
+    let response = await axios.get('/card') // 向/card发出GET请求
+    let cards = response.data // 接收响应负载
+    cards.forEach(card => { // 对于每个借书证
+        cards.value.push(card) // 将其加入到列表中
+    })
+}
+
+onMounted(() => {
+    QueryCards()
+})
+
+</script>
+
+
+<style scoped>
+.cardBox {
+    height: 300px;
+    width: 200px;
+    box-shadow: 0 4px 8px 0 rgba(0, 0, 0, 0.2), 0 6px 20px 0 rgba(0, 0, 0, 0.19);
+    text-align: center;
+    margin-top: 40px;
+    margin-left: 27.5px;
+    margin-right: 10px;
+    padding: 7.5px;
+    padding-right: 10px;
+    padding-top: 15px;
+}
+
+.newCardBox {
+    height: 300px;
+    width: 200px;
+    margin-top: 40px;
+    margin-left: 27.5px;
+    margin-right: 10px;
+    padding: 7.5px;
+    padding-right: 10px;
+    padding-top: 15px;
+    box-shadow: 0 4px 8px 0 rgba(0, 0, 0, 0.2), 0 6px 20px 0 rgba(0, 0, 0, 0.19);
+    text-align: center;
+}
+</style>
+
 <template>
     <el-scrollbar height="100%" style="width: 100%;">
         <!-- 标题和搜索框 -->
@@ -28,11 +138,11 @@
 
                     <!-- 卡片操作 -->
                     <div style="margin-top: 10px;">
-                        <el-button type="primary" :icon="Edit" @click="this.toModifyInfo.id = card.id, this.toModifyInfo.name = card.name,
-                this.toModifyInfo.department = card.department, this.toModifyInfo.type = card.type,
-                this.modifyCardVisible = true" circle />
+                        <el-button type="primary" :icon="Edit" @click="toModifyInfo.id = card.id, toModifyInfo.name = card.name,
+                            toModifyInfo.department = card.department, toModifyInfo.type = card.type,
+                            modifyCardVisible = true" circle />
                         <el-button type="danger" :icon="Delete" circle
-                            @click="this.toRemove = card.id, this.removeCardVisible = true"
+                            @click="toRemove = card.id, removeCardVisible = true"
                             style="margin-left: 30px;" />
                     </div>
 
@@ -78,7 +188,7 @@
 
 
         <!-- 修改信息对话框 -->   
-        <el-dialog v-model="modifyCardVisible" :title="'修改信息(借书证ID: ' + this.toModifyInfo.id + ')'" width="30%"
+        <el-dialog v-model="modifyCardVisible" :title="'修改信息(借书证ID: ' + toModifyInfo.id + ')'" width="30%"
             align-center>
             <div style="margin-left: 2vw; font-weight: bold; font-size: 1rem; margin-top: 20px; ">
                 姓名：
@@ -120,122 +230,3 @@
 
     </el-scrollbar>
 </template>
-
-<script>
-import { Delete, Edit, Search } from '@element-plus/icons-vue'
-import { ElMessage } from 'element-plus'
-import axios from 'axios'
-
-export default {
-    data() {
-        return {
-            cards: [{ // 借书证列表
-                id: 1,
-                name: '小明',
-                department: '计算机学院',
-                type: '学生'
-            }, {
-                id: 2,
-                name: '王老师',
-                department: '计算机学院',
-                type: '教师'
-            }
-            ],
-            Delete,
-            Edit,
-            Search,
-            toSearch: '', // 搜索内容
-            types: [ // 借书证类型
-                {
-                    value: '教师',
-                    label: '教师',
-                },
-                {
-                    value: '学生',
-                    label: '学生',
-                }
-            ],
-            newCardVisible: false, // 新建借书证对话框可见性
-            removeCardVisible: false, // 删除借书证对话框可见性
-            toRemove: 0, // 待删除借书证号
-            newCardInfo: { // 待新建借书证信息
-                name: '',
-                department: '',
-                type: '学生'
-            },
-            modifyCardVisible: false, // 修改信息对话框可见性
-            toModifyInfo: { // 待修改借书证信息
-                id: 0,
-                name: '',
-                department: '',
-                type: '学生'
-            },
-        }
-    },
-    methods: {
-        ConfirmNewCard() {
-            // 发出POST请求
-            axios.post("/card",
-                { // 请求体
-                    name: this.newCardInfo.name,
-                    department: this.newCardInfo.department,
-                    type: this.newCardInfo.type
-                })
-                .then(response => {
-                    ElMessage.success("借书证新建成功") // 显示消息提醒
-                    this.newCardVisible = false // 将对话框设置为不可见
-                    this.QueryCards() // 重新查询借书证以刷新页面
-                })
-        },
-        ConfirmModifyCard() {
-            // TODO: YOUR CODE HERE
-        },
-        ConfirmRemoveCard() {
-            // TODO: YOUR CODE HERE
-        },
-        QueryCards() {
-            this.cards = [] // 清空列表
-            let response = axios.get('/card') // 向/card发出GET请求
-                .then(response => {
-                    let cards = response.data // 接收响应负载
-                    cards.forEach(card => { // 对于每个借书证
-                        this.cards.push(card) // 将其加入到列表中
-                    })
-                })
-        }
-    },
-    mounted() { // 当页面被渲染时
-        this.QueryCards() // 查询借书证
-    }
-}
-
-</script>
-
-
-<style scoped>
-.cardBox {
-    height: 300px;
-    width: 200px;
-    box-shadow: 0 4px 8px 0 rgba(0, 0, 0, 0.2), 0 6px 20px 0 rgba(0, 0, 0, 0.19);
-    text-align: center;
-    margin-top: 40px;
-    margin-left: 27.5px;
-    margin-right: 10px;
-    padding: 7.5px;
-    padding-right: 10px;
-    padding-top: 15px;
-}
-
-.newCardBox {
-    height: 300px;
-    width: 200px;
-    margin-top: 40px;
-    margin-left: 27.5px;
-    margin-right: 10px;
-    padding: 7.5px;
-    padding-right: 10px;
-    padding-top: 15px;
-    box-shadow: 0 4px 8px 0 rgba(0, 0, 0, 0.2), 0 6px 20px 0 rgba(0, 0, 0, 0.19);
-    text-align: center;
-}
-</style>
