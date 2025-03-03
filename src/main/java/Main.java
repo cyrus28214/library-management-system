@@ -1,5 +1,8 @@
 import utils.ConnectConfig;
 import utils.DatabaseConnector;
+import com.sun.net.httpserver.HttpServer;
+import java.net.InetSocketAddress;
+import handlers.CardHandler;
 
 import java.util.logging.Logger;
 
@@ -19,7 +22,10 @@ public class Main {
                 log.severe("Failed to connect database.");
                 System.exit(1);
             }
-            /* do somethings */
+            HttpServer server = HttpServer.create(new InetSocketAddress(8000), 0);
+            server.createContext("/card", new CardHandler());
+            server.start();
+            System.out.println("Server is listening on port 8000");
 
             // release database connection handler
             if (connector.release()) {
