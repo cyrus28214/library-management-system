@@ -483,7 +483,51 @@ public class LibraryManagementSystemImpl implements LibraryManagementSystem {
 
     @Override
     public ApiResult showBorrowHistory(int cardId) {
-        return new ApiResult(false, "Unimplemented Function");
+        try {
+            String sql = "SELECT b.*, bk.category, bk.title, bk.press, bk.publish_year, " +
+                        "bk.author, bk.price, bk.stock " +
+                        "FROM borrow b " +
+                        "JOIN book bk ON b.book_id = bk.book_id " +
+                        "WHERE b.card_id = ? " +
+                        "ORDER BY b.borrow_time DESC, b.book_id ASC";
+            
+            try (PreparedStatement stmt = connector.getConn().prepareStatement(sql)) {
+                stmt.setInt(1, cardId);
+                ResultSet rs = stmt.executeQuery();
+                
+                List<BorrowHistories.Item> items = new ArrayList<>();
+                while (rs.next()) {
+                    Book book = new Book();
+                    book.setBookId(rs.getInt("book_id"));
+                    book.setCategory(rs.getString("category"));
+                    book.setTitle(rs.getString("title"));
+                    book.setPress(rs.getString("press"));
+                    book.setPublishYear(rs.getInt("publish_year"));
+                    book.setAuthor(rs.getString("author"));
+                    book.setPrice(rs.getDouble("price"));
+                    book.setStock(rs.getInt("stock"));
+                    
+                    Borrow borrow = new Borrow();
+                    borrow.setCardId(cardId);
+                    borrow.setBookId(rs.getInt("book_id"));
+                    
+                    borrow.setBorrowTime(rs.getLong("borrow_time"));
+                    
+                    long returnTime = rs.getLong("return_time");
+                    if (!rs.wasNull()) {
+                        borrow.setReturnTime(returnTime);
+                    }
+                    
+                    BorrowHistories.Item item = new BorrowHistories.Item(cardId, book, borrow);
+                    items.add(item);
+                }
+                
+                BorrowHistories histories = new BorrowHistories(items);
+                return new ApiResult(true, histories);
+            }
+        } catch (Exception e) {
+            return new ApiResult(false, e.getMessage());
+        }
     }
 
     @Override
