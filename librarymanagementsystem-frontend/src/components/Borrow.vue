@@ -4,7 +4,14 @@ import { ref, computed } from 'vue';
 import axios from 'axios';
 
 const isShow = ref(false); // 结果表格展示状态
-const tableData = ref([]);
+const data = ref([]);
+
+const tableData = computed(() => data.value.map(borrow => ({
+    cardId: borrow.cardId,
+    bookId: borrow.bookId,
+    borrowTime: new Date(borrow.borrowTime).toLocaleString(),
+    returnTime: borrow.returnTime === 0 ? '未归还' : new Date(borrow.returnTime).toLocaleString()
+})));
 const toQuery = ref(''); // 待查询内容(对某一借书证号进行查询)
 const toSearch = ref(''); // 待搜索内容(对查询到的结果进行搜索)
 
@@ -17,11 +24,12 @@ const fitlerTableData = computed(() => tableData.value.filter(
 ));
 
 const QueryBorrows = async () => {
-    tableData.value = [];
+    data.value = [];
     let response = await axios.get('/borrow', { params: { cardId: toQuery.value } }) // 向/borrow发出GET请求，参数为cardId=toQuery
     response.data.payload.items.forEach(borrow => { // 对于每一个借书记录
-        tableData.value.push(borrow) // 将它加入到列表项中
+        data.value.push(borrow) // 将它加入到列表项中
     });
+    isShow.value = true;
 }
 </script>
 
