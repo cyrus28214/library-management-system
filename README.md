@@ -17,3 +17,7 @@
 
 运行某个特定的测试
 `mvn -Dtest=LibraryTest#parallelBorrowBookTest clean test`
+
+### 文档
+
+[ApiFox文档](https://w49pxtebrt.apifox.cn)

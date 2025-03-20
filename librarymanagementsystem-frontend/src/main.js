@@ -12,7 +12,8 @@ const app = createApp(App)
 for (const [key, component] of Object.entries(ElementPlusIconsVue)) {
     app.component(key, component)
 }
-axios.defaults.baseURL = 'http://localhost:8000';
+// axios.defaults.baseURL = 'http://localhost:8000';
+axios.defaults.baseURL = 'http://127.0.0.1:4523/m1/5948597-0-default/'; // ApiFox local mock server
 app.use(createPinia())
 app.use(router)
 app.use(ElementPlus)

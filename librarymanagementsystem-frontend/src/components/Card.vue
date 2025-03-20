@@ -4,18 +4,7 @@ import { ElMessage } from 'element-plus';
 import axios from 'axios';
 import { ref, onMounted } from 'vue';
 
-const cards = ref([{ // 借书证列表
-    id: 1,
-    name: '小明',
-    department: '计算机学院',
-    type: '学生'
-}, {
-    id: 2,
-    name: '王老师',
-    department: '计算机学院',
-    type: '教师'
-}
-]);
+const cards = ref([]);
 
 const toSearch = ref(''); // 搜索内容
 const types = ref([{ // 借书证类型
@@ -67,8 +56,7 @@ const ConfirmRemoveCard = async () => {
 const QueryCards = async () => {
     cards.value = [] // 清空列表
     let response = await axios.get('/card') // 向/card发出GET请求
-    let cards = response.data // 接收响应负载
-    cards.forEach(card => { // 对于每个借书证
+    response.data.forEach(card => { // 对于每个借书证
         cards.value.push(card) // 将其加入到列表中
     })
 }
