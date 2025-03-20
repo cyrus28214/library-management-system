@@ -31,17 +31,18 @@ public class Main {
             HttpServer server = HttpServer.create(new InetSocketAddress(8000), 0);
             server.createContext("/card", new CorsFilter(new CardHandler(lms)));
             server.start();
-            System.out.println("Server is listening on port 8000");
+            log.info("Server is listening on port 8000");
 
             // release database connection handler
-            if (connector.release()) {
-                log.info("Success to release connection.");
-            } else {
-                log.warning("Failed to release connection.");
-            }
+            Runtime.getRuntime().addShutdownHook(new Thread(() -> {
+                if (connector.release()) {
+                    log.info("Success to release connection.");
+                } else {
+                    log.warning("Failed to release connection.");
+                }
+            }));
         } catch (Exception e) {
             e.printStackTrace();
         }
     }
-
 }
