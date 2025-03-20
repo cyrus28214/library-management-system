@@ -2,6 +2,7 @@ package utils;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import java.util.logging.Logger;
+
 public class JsonUtil {
     private static final Logger log = Logger.getLogger(JsonUtil.class.getName());
     // https://fasterxml.github.io/jackson-databind/javadoc/2.6/com/fasterxml/jackson/databind/ObjectMapper.html
