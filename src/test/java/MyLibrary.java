@@ -4,6 +4,7 @@ import entities.Card;
 import org.apache.commons.lang3.RandomUtils;
 import org.junit.Assert;
 import queries.ApiResult;
+import service.LibraryManagementSystem;
 import utils.RandomData;
 
 import java.util.*;

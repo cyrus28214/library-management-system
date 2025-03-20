@@ -9,6 +9,8 @@ import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Test;
 import queries.*;
+import service.LibraryManagementSystem;
+import service.LibraryManagementSystemImpl;
 import utils.ConnectConfig;
 import utils.DatabaseConnector;
 import utils.RandomData;
