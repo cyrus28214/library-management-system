@@ -4,28 +4,22 @@ import { ref, computed } from 'vue';
 import axios from 'axios';
 
 const isShow = ref(false); // 结果表格展示状态
-const tableData = ref([{
-    cardID: 1,
-    bookID: 1,
-    borrowTime: "2024.03.04 21:48",
-    returnTime: "2024.03.04 21:49"
-}]);
+const tableData = ref([]);
 const toQuery = ref(''); // 待查询内容(对某一借书证号进行查询)
 const toSearch = ref(''); // 待搜索内容(对查询到的结果进行搜索)
 
 const fitlerTableData = computed(() => tableData.value.filter(
     (tuple) =>
         (toSearch.value == '') || // 搜索框为空，即不搜索
-        tuple.bookID == toSearch.value || // 图书号与搜索要求一致
+        tuple.bookId == toSearch.value || // 图书号与搜索要求一致
         tuple.borrowTime.toString().includes(toSearch.value) || // 借出时间包含搜索要求
         tuple.returnTime.toString().includes(toSearch.value) // 归还时间包含搜索要求
 ));
 
 const QueryBorrows = async () => {
     tableData.value = [];
-    let response = await axios.get('/borrow', { params: { cardID: toQuery } }) // 向/borrow发出GET请求，参数为cardID=toQuery
-    let borrows = response.data // 获取响应负载
-    borrows.forEach(borrow => { // 对于每一个借书记录
+    let response = await axios.get('/borrow', { params: { cardId: toQuery.value } }) // 向/borrow发出GET请求，参数为cardId=toQuery
+    response.data.payload.items.forEach(borrow => { // 对于每一个借书记录
         tableData.value.push(borrow) // 将它加入到列表项中
     });
 }
@@ -54,8 +48,8 @@ const QueryBorrows = async () => {
         <el-table v-if="isShow" :data="fitlerTableData" height="600"
             :default-sort="{ prop: 'borrowTime', order: 'ascending' }" :table-layout="'auto'"
             style="width: 100%; margin-left: 50px; margin-top: 30px; margin-right: 50px; max-width: 80vw;">
-            <el-table-column prop="cardID" label="借书证ID" />
-            <el-table-column prop="bookID" label="图书ID" sortable />
+            <el-table-column prop="cardId" label="借书证ID" />
+            <el-table-column prop="bookId" label="图书ID" sortable />
             <el-table-column prop="borrowTime" label="借出时间" sortable />
             <el-table-column prop="returnTime" label="归还时间" sortable />
         </el-table>

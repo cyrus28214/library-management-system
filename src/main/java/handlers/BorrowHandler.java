@@ -36,18 +36,18 @@ public class BorrowHandler implements HttpHandler {
         String query = exchange.getRequestURI().getQuery();
         Map<String, String> params = HttpUtil.extractParams(query);
         log.info("GET /borrow with params: " + params.toString());
-        // check if params contains "cardID"
-        if (!params.containsKey("cardID")) {
-            HttpUtil.jsonResponse(exchange, new ApiResult(false, "cardID is required"));
+        // check if params contains "cardId"
+        if (!params.containsKey("cardId")) {
+            HttpUtil.jsonResponse(exchange, new ApiResult(false, "cardId is required"));
             return;
         }
-        String cardIdStr = params.get("cardID");
+        String cardIdStr = params.get("cardId");
         try {
             int cardId = Integer.parseInt(cardIdStr);
             ApiResult result = this.lms.showBorrowHistory(cardId);
             HttpUtil.jsonResponse(exchange, result);
         } catch (NumberFormatException e) {
-            HttpUtil.jsonResponse(exchange, new ApiResult(false, "cardID is not a valid integer"));
+            HttpUtil.jsonResponse(exchange, new ApiResult(false, "cardId is not a valid integer"));
         }
     }
 }
