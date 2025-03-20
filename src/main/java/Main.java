@@ -3,14 +3,14 @@ import utils.DatabaseConnector;
 import com.sun.net.httpserver.HttpServer;
 import java.net.InetSocketAddress;
 import handlers.CardHandler;
+import handlers.BorrowHandler;
 import handlers.CorsFilter;
 import service.LibraryManagementSystem;
 import service.LibraryManagementSystemImpl;
-
 import java.util.logging.Logger;
 import java.util.logging.ConsoleHandler;
 import utils.LogFormatter;
-
+import java.util.logging.LogManager;
 public class Main {
 
     private static final Logger log = Logger.getLogger(Main.class.getName());
@@ -18,10 +18,11 @@ public class Main {
     public static void main(String[] args) {
         try {
             // configure logger
+            LogManager.getLogManager().reset();
+            Logger rootLogger = LogManager.getLogManager().getLogger("");
             ConsoleHandler consoleHandler = new ConsoleHandler();
             consoleHandler.setFormatter(new LogFormatter());
-            log.setUseParentHandlers(false);
-            log.addHandler(consoleHandler);
+            rootLogger.addHandler(consoleHandler);
 
             // parse connection config from "resources/application.yaml"
             ConnectConfig conf = new ConnectConfig();
@@ -38,6 +39,7 @@ public class Main {
 
             HttpServer server = HttpServer.create(new InetSocketAddress(8000), 0);
             server.createContext("/card", new CorsFilter(new CardHandler(lms)));
+            server.createContext("/borrow", new CorsFilter(new BorrowHandler(lms)));
             server.start();
             log.info("Server is listening on port 8000");
 
