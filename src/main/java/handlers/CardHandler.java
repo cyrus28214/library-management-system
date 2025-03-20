@@ -18,16 +18,10 @@ public class CardHandler implements HttpHandler {
     @Override
     public void handle(HttpExchange exchange) throws IOException {
         String requestMethod = exchange.getRequestMethod();
-        
         switch (requestMethod) {
             case "GET":
                 this.handleGetRequest(exchange);
-                break;
-                
-            case "POST":
-                // TODO
-                break;
-                
+                break;                
             default:
                 exchange.sendResponseHeaders(405, -1);
         }
