@@ -56,7 +56,7 @@ const ConfirmRemoveCard = async () => {
 const QueryCards = async () => {
     cards.value = [] // 清空列表
     let response = await axios.get('/card') // 向/card发出GET请求
-    response.data.forEach(card => { // 对于每个借书证
+    response.data.payload.cards.forEach(card => { // 对于每个借书证
         cards.value.push(card) // 将其加入到列表中
     })
 }
@@ -74,6 +74,8 @@ onMounted(() => {
     width: 200px;
     box-shadow: 0 4px 8px 0 rgba(0, 0, 0, 0.2), 0 6px 20px 0 rgba(0, 0, 0, 0.19);
     text-align: center;
+    text-wrap: nowrap;
+    overflow: hidden;
     margin-top: 40px;
     margin-left: 27.5px;
     margin-right: 10px;
@@ -111,7 +113,7 @@ onMounted(() => {
             <div class="cardBox" v-for="card in cards" v-show="card.name.includes(toSearch)" :key="card.id">
                 <div>
                     <!-- 卡片标题 -->
-                    <div style="font-size: 25px; font-weight: bold;">No. {{ card.id }}</div>
+                    <div style="font-size: 25px; font-weight: bold;">No. {{ card.cardId }}</div>
 
                     <el-divider />
 

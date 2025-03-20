@@ -5,6 +5,8 @@ import com.sun.net.httpserver.HttpExchange;
 import java.io.IOException;
 import java.io.OutputStream;
 import service.LibraryManagementSystem;
+import utils.JsonUtil;
+import queries.ApiResult;
 
 public class CardHandler implements HttpHandler {
     private final LibraryManagementSystem lms;
@@ -16,29 +18,30 @@ public class CardHandler implements HttpHandler {
     @Override
     public void handle(HttpExchange exchange) throws IOException {
         String requestMethod = exchange.getRequestMethod();
-        String response = "{\"message\": \"Hello, World!\"}";
-        exchange.getResponseHeaders().set("Content-Type", "application/json");
         
         switch (requestMethod) {
             case "GET":
-                exchange.sendResponseHeaders(200, 0);
-                // 使用 lms 处理请求
-                // 例如：ApiResult result = lms.showCards();
-                
-                try (OutputStream outputStream = exchange.getResponseBody()) {
-                    outputStream.write(response.getBytes());
-                }
+                this.handleGetRequest(exchange);
                 break;
                 
             case "POST":
-                exchange.sendResponseHeaders(200, 0);
-                try (OutputStream outputStream = exchange.getResponseBody()) {
-                    outputStream.write(response.getBytes());
-                }
+                // TODO
                 break;
                 
             default:
                 exchange.sendResponseHeaders(405, -1);
         }
+    }
+
+    private void handleGetRequest(HttpExchange exchange) throws IOException {
+        exchange.sendResponseHeaders(200, 0);
+        exchange.getResponseHeaders().set("Content-Type", "application/json");
+        ApiResult result = this.lms.showCards();
+        // use jackson to serialize the result
+        String response = JsonUtil.toJson(result);
+        try (OutputStream outputStream = exchange.getResponseBody()) {
+            outputStream.write(response.getBytes());
+        }
+        exchange.close();
     }
 }
