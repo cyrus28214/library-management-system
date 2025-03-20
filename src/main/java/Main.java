@@ -8,6 +8,8 @@ import service.LibraryManagementSystem;
 import service.LibraryManagementSystemImpl;
 
 import java.util.logging.Logger;
+import java.util.logging.ConsoleHandler;
+import utils.LogFormatter;
 
 public class Main {
 
@@ -15,6 +17,12 @@ public class Main {
 
     public static void main(String[] args) {
         try {
+            // configure logger
+            ConsoleHandler consoleHandler = new ConsoleHandler();
+            consoleHandler.setFormatter(new LogFormatter());
+            log.setUseParentHandlers(false);
+            log.addHandler(consoleHandler);
+
             // parse connection config from "resources/application.yaml"
             ConnectConfig conf = new ConnectConfig();
             log.info("Success to parse connect config. " + conf.toString());
