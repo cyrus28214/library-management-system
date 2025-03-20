@@ -31,13 +31,13 @@ public class BorrowHandler implements HttpHandler {
     }
 
     private void handleGetRequest(HttpExchange exchange) throws IOException {
-        exchange.sendResponseHeaders(200, 0);
-        exchange.getResponseHeaders().set("Content-Type", "application/json");
+        
         String query = exchange.getRequestURI().getQuery();
         Map<String, String> params = HttpUtil.extractParams(query);
         log.info("GET /borrow with params: " + params.toString());
         // check if params contains "cardId"
         if (!params.containsKey("cardId")) {
+            exchange.sendResponseHeaders(400, -1);
             HttpUtil.jsonResponse(exchange, new ApiResult(false, "cardId is required"));
             return;
         }
@@ -45,8 +45,10 @@ public class BorrowHandler implements HttpHandler {
         try {
             int cardId = Integer.parseInt(cardIdStr);
             ApiResult result = this.lms.showBorrowHistory(cardId);
+            exchange.sendResponseHeaders(200, 0);
             HttpUtil.jsonResponse(exchange, result);
         } catch (NumberFormatException e) {
+            exchange.sendResponseHeaders(400, -1);
             HttpUtil.jsonResponse(exchange, new ApiResult(false, "cardId is not a valid integer"));
         }
     }
