@@ -387,12 +387,12 @@ public class LibraryManagementSystemImpl implements LibraryManagementSystem {
             ResultSet bookRs = checkBookStmt.executeQuery();
             if (!bookRs.next()) {
                 rollback(conn);
-                return new ApiResult(false, "Book not found");
+                return new ApiResult(false, "图书不存在");
             }
             int stock = bookRs.getInt("stock");
             if (stock <= 0) {
                 rollback(conn);
-                return new ApiResult(false, "Book out of stock");
+                return new ApiResult(false, "图书库存不足");
             }
 
             String checkCardSql = "SELECT card_id FROM card WHERE card_id = ?";
@@ -485,6 +485,14 @@ public class LibraryManagementSystemImpl implements LibraryManagementSystem {
     @Override
     public ApiResult showBorrowHistory(int cardId) {
         try {
+            // check if the card exists
+            String checkCardSql = "SELECT count(*) FROM card WHERE card_id = ?";
+            PreparedStatement checkCardStmt = connector.getConn().prepareStatement(checkCardSql);
+            checkCardStmt.setInt(1, cardId);
+            ResultSet checkCardRs = checkCardStmt.executeQuery();
+            if (!checkCardRs.next()) {
+                return new ApiResult(false, "此卡不存在");
+            }
             String sql = "SELECT b.*, bk.category, bk.title, bk.press, bk.publish_year, " +
                         "bk.author, bk.price, bk.stock " +
                         "FROM borrow b " +

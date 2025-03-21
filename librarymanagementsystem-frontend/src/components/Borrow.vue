@@ -6,6 +6,16 @@ import axios from 'axios';
 const isShow = ref(false); // 结果表格展示状态
 const data = ref([]);
 
+const message = ref('');
+const messageDialogVisible = ref(false);
+const handleApiMessage = (reponse) => {
+    if (reponse.data.message !== null) {
+        message.value = reponse.data.message;
+        messageDialogVisible.value = true;
+        console.log(reponse.data.message);
+    }
+}
+
 const tableData = computed(() => data.value.map(borrow => ({
     cardId: borrow.cardId,
     bookId: borrow.bookId,
@@ -26,10 +36,13 @@ const fitlerTableData = computed(() => tableData.value.filter(
 const QueryBorrows = async () => {
     data.value = [];
     let response = await axios.get('/borrow', { params: { cardId: toQuery.value } }) // 向/borrow发出GET请求，参数为cardId=toQuery
-    response.data.payload.items.forEach(borrow => { // 对于每一个借书记录
-        data.value.push(borrow) // 将它加入到列表项中
-    });
-    isShow.value = true;
+    handleApiMessage(response);
+    if (response.data.ok) {
+        response.data.payload.items.forEach(borrow => { // 对于每一个借书记录
+            data.value.push(borrow) // 将它加入到列表项中
+        });
+        isShow.value = true;
+    }
 }
 </script>
 
@@ -61,6 +74,16 @@ const QueryBorrows = async () => {
             <el-table-column prop="borrowTime" label="借出时间" sortable />
             <el-table-column prop="returnTime" label="归还时间" sortable />
         </el-table>
+
+        <!-- 信息对话框 -->  
+        <el-dialog v-model="messageDialogVisible" width="30%" align-center>
+            <span>{{ message }}</span>
+            <template #footer>
+                <span class="dialog-footer">
+                    <el-button @click="messageDialogVisible = false">确定</el-button>
+                </span>
+            </template>
+        </el-dialog>
 
     </el-scrollbar>
 </template>

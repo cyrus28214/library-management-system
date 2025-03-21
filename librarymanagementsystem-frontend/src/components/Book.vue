@@ -105,7 +105,8 @@ const adjustStock = async () => {
 const borrowBook = async () => {
     const reponse = await axios.post('/borrow', {
         bookId: toBorrowBook.value.bookId,
-        cardId: toBorrowBook.value.cardId
+        cardId: toBorrowBook.value.cardId,
+        borrowTime: new Date().getTime()
     });
     handleApiMessage(reponse);
     if (reponse.data.ok) {

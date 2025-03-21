@@ -13,7 +13,8 @@ import com.fasterxml.jackson.annotation.JsonProperty;
 
 record BorrowPostRequest(
     @JsonProperty(required = true) int bookId,
-    @JsonProperty(required = true) int cardId
+    @JsonProperty(required = true) int cardId,
+    @JsonProperty(required = true) long borrowTime
 ) {};
 
 public class BorrowHandler implements HttpHandler {
@@ -76,6 +77,7 @@ public class BorrowHandler implements HttpHandler {
         BorrowPostRequest request = HttpUtil.jsonRequest(exchange, BorrowPostRequest.class);
         log.info("POST /borrow with request body: " + request);
         Borrow borrow = new Borrow(request.bookId(), request.cardId());
+        borrow.setBorrowTime(request.borrowTime());
         ApiResult result = this.lms.borrowBook(borrow);
         exchange.sendResponseHeaders(200, 0);
         HttpUtil.jsonResponse(exchange, result);
