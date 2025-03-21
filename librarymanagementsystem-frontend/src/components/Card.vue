@@ -8,10 +8,10 @@ const cards = ref([]);
 
 const toSearch = ref(''); // 搜索内容
 const types = ref([{ // 借书证类型
-    value: '教师',
+    value: 'T',
     label: '教师',
 }, {
-    value: '学生',
+    value: 'S',
     label: '学生',
 }]);
 
@@ -55,7 +55,7 @@ const ConfirmRemoveCard = async () => {
 
 const QueryCards = async () => {
     cards.value = [] // 清空列表
-    let response = await axios.get('/card') // 向/card发出GET请求
+    const response = await axios.get('/card') // 向/card发出GET请求
     response.data.payload.cards.forEach(card => { // 对于每个借书证
         cards.value.push(card) // 将其加入到列表中
     })

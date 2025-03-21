@@ -7,7 +7,6 @@ import java.util.logging.Logger;
 import service.LibraryManagementSystem;
 import queries.ApiResult;
 import utils.HttpUtil;
-import utils.JsonUtil;
 import entities.Card;
 
 record PostCardRequest(String name, String department, String type) {}
@@ -42,13 +41,19 @@ public class CardHandler implements HttpHandler {
     }
 
     private void handlePostRequest(HttpExchange exchange) throws IOException {
-        String requestBody = exchange.getRequestBody().toString();
-        PostCardRequest request = JsonUtil.fromJson(requestBody, PostCardRequest.class);
-        log.info("POST /card with body: " + requestBody);
-        String name = request.name();
-        String department = request.department();
-        String type = request.type();
-        Card card = new Card(0, name, department, Card.CardType.values(type));
+        PostCardRequest request = HttpUtil.jsonRequest(exchange, PostCardRequest.class);
+        log.info("POST /card with body: " + request);
+        Card.CardType type = Card.CardType.values(request.type());
+        if (type == null) {
+            exchange.sendResponseHeaders(400, -1);
+            HttpUtil.jsonResponse(exchange, new ApiResult(false, "Invalid card type"));
+            return;
+        }
+        Card card = new Card(0, 
+            request.name(), 
+            request.department(), 
+            type
+        );
         ApiResult result = this.lms.registerCard(card);
         exchange.sendResponseHeaders(200, 0);
         HttpUtil.jsonResponse(exchange, result);

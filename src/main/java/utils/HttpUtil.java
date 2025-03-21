@@ -7,6 +7,7 @@ import java.util.logging.Logger;
 import com.sun.net.httpserver.HttpExchange;
 import java.io.OutputStream;
 import java.io.IOException;
+
 public class HttpUtil {
     private static final Logger log = Logger.getLogger(HttpUtil.class.getName());
 
@@ -45,5 +46,15 @@ public class HttpUtil {
             throw new RuntimeException("Failed to write response", e);
         }
         exchange.close();
+    }
+
+    public static <T> T jsonRequest(HttpExchange exchange, Class<T> requestType) {
+        try {
+            String requestBody = new String(exchange.getRequestBody().readAllBytes(), "UTF-8");
+            return JsonUtil.fromJson(requestBody, requestType);
+        } catch (IOException e) {
+            log.severe("Failed to read request body: " + e.getMessage());
+            throw new RuntimeException("Failed to read request body", e);
+        }
     }
 }
