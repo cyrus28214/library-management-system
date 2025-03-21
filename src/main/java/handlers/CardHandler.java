@@ -1,6 +1,7 @@
 package handlers;
 
 import com.sun.net.httpserver.HttpHandler;
+import com.fasterxml.jackson.annotation.JsonProperty;
 import com.sun.net.httpserver.HttpExchange;
 import java.io.IOException;
 import java.util.logging.Logger;
@@ -9,8 +10,17 @@ import queries.ApiResult;
 import utils.HttpUtil;
 import entities.Card;
 
-record PostRequest(String name, String department, String type) {}
-record PutRequest(int cardId, String name, String department, String type) {}
+record PostRequest(
+    @JsonProperty(required = true) String name,
+    @JsonProperty(required = true) String department,
+    @JsonProperty(required = true) String type
+) {}
+record PutRequest(
+    @JsonProperty(required = true) int cardId,
+    @JsonProperty(required = true) String name,
+    @JsonProperty(required = true) String department,
+    @JsonProperty(required = true) String type
+) {}
 
 public class CardHandler implements HttpHandler {
     private final Logger log = Logger.getLogger(CardHandler.class.getName());
@@ -23,17 +33,23 @@ public class CardHandler implements HttpHandler {
     @Override
     public void handle(HttpExchange exchange) throws IOException {
         String requestMethod = exchange.getRequestMethod();
-        switch (requestMethod) {
-            case "GET":
-                this.handleGetRequest(exchange);
-                break;          
-            case "POST":
-                this.handlePostRequest(exchange);
-                break;
-            case "PUT":
-                this.handlePutRequest(exchange);
-            default:
-                exchange.sendResponseHeaders(405, -1);
+        try {
+            switch (requestMethod) {
+                case "GET":
+                    this.handleGetRequest(exchange);
+                    break;          
+                case "POST":
+                    this.handlePostRequest(exchange);
+                    break;
+                case "PUT":
+                    this.handlePutRequest(exchange);
+                default:
+                    exchange.sendResponseHeaders(405, -1);
+            }
+        } catch (Exception e) {
+            exchange.sendResponseHeaders(500, 0);
+            log.severe(String.format("%s /borrow error: %s", requestMethod, e.getMessage()));
+            HttpUtil.jsonResponse(exchange, new ApiResult(false, e.getMessage()));
         }
     }
 

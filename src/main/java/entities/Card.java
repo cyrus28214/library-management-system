@@ -2,6 +2,7 @@ package entities;
 
 import java.util.Objects;
 import java.util.Random;
+import com.fasterxml.jackson.annotation.JsonValue;
 
 public final class Card {
 
@@ -15,6 +16,7 @@ public final class Card {
             this.str = str;
         }
 
+        @JsonValue
         public String getStr() {
             return str;
         }

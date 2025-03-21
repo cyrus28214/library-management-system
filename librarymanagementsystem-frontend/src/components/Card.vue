@@ -2,7 +2,7 @@
 import { Delete, Edit, Search } from '@element-plus/icons-vue';
 import { ElMessage } from 'element-plus';
 import axios from 'axios';
-import { ref, onMounted } from 'vue';
+import { ref, onMounted, computed } from 'vue';
 
 const cards = ref([]);
 
@@ -25,12 +25,10 @@ const newCardInfo = ref({ // 待新建借书证信息
 });
 
 const modifyCardVisible = ref(false); // 修改信息对话框可见性
-const toModifyInfo = ref({ // 待修改借书证信息
-    id: 0,
-    name: '',
-    department: '',
-    type: '学生'
-});
+const toModifyInfo = ref({});
+
+const message = ref(null);
+const messageVisible = computed(() => message.value !== null);
 
 const ConfirmNewCard = async () => {
     // 发出POST请求
@@ -46,7 +44,19 @@ const ConfirmNewCard = async () => {
 }
 
 const ConfirmModifyCard = async () => {
-    // TODO: YOUR CODE HERE
+    const reponse = await axios.put('/card', {
+        cardId: toModifyInfo.value.cardId,
+        name: toModifyInfo.value.name,
+        department: toModifyInfo.value.department,
+        type: toModifyInfo.value.type
+    });
+    if (reponse.data.message !== null) {
+        console.log(reponse.data.message);
+        message.value = reponse.data.message;
+    }
+    modifyCardVisible.value = false;
+    await QueryCards();
+
 }
 
 const ConfirmRemoveCard = async () => {
@@ -128,7 +138,7 @@ onMounted(() => {
 
                     <!-- 卡片操作 -->
                     <div style="margin-top: 10px;">
-                        <el-button type="primary" :icon="Edit" @click="toModifyInfo.id = card.id, toModifyInfo.name = card.name,
+                        <el-button type="primary" :icon="Edit" @click="toModifyInfo.cardId = card.cardId, toModifyInfo.name = card.name,
                             toModifyInfo.department = card.department, toModifyInfo.type = card.type,
                             modifyCardVisible = true" circle />
                         <el-button type="danger" :icon="Delete" circle
@@ -178,7 +188,7 @@ onMounted(() => {
 
 
         <!-- 修改信息对话框 -->   
-        <el-dialog v-model="modifyCardVisible" :title="'修改信息(借书证ID: ' + toModifyInfo.id + ')'" width="30%"
+        <el-dialog v-model="modifyCardVisible" :title="'修改信息(借书证ID: ' + toModifyInfo.cardId + ')'" width="30%"
             align-center>
             <div style="margin-left: 2vw; font-weight: bold; font-size: 1rem; margin-top: 20px; ">
                 姓名：
@@ -214,6 +224,16 @@ onMounted(() => {
                     <el-button type="danger" @click="ConfirmRemoveCard">
                         删除
                     </el-button>
+                </span>
+            </template>
+        </el-dialog>
+
+        <!-- 信息对话框 -->  
+        <el-dialog v-model="messageVisible" width="30%" align-center>
+            <span>{{ message }}</span>
+            <template #footer>
+                <span class="dialog-footer">
+                    <el-button @click="message = null">确定</el-button>
                 </span>
             </template>
         </el-dialog>

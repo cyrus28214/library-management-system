@@ -15,7 +15,7 @@ public class CorsFilter implements HttpHandler {
     public void handle(HttpExchange exchange) throws IOException {
         // add CORS headers
         exchange.getResponseHeaders().add("Access-Control-Allow-Origin", "*");
-        exchange.getResponseHeaders().add("Access-Control-Allow-Methods", "GET, POST, OPTIONS");
+        exchange.getResponseHeaders().add("Access-Control-Allow-Methods", "*");
         exchange.getResponseHeaders().add("Access-Control-Allow-Headers", "Content-Type");
         exchange.getResponseHeaders().add("Access-Control-Max-Age", "86400");
 
