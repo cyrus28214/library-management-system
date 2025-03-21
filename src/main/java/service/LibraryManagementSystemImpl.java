@@ -540,7 +540,7 @@ public class LibraryManagementSystemImpl implements LibraryManagementSystem {
             PreparedStatement checkStmt = conn.prepareStatement(checkSql);
             checkStmt.setString(1, card.getName());
             checkStmt.setString(2, card.getDepartment());
-            checkStmt.setString(3, card.getType().getStr());
+            checkStmt.setString(3, card.getType().name());
             ResultSet checkRs = checkStmt.executeQuery();
             
             if (checkRs.next() && checkRs.getInt(1) > 0) {
@@ -553,7 +553,7 @@ public class LibraryManagementSystemImpl implements LibraryManagementSystem {
             PreparedStatement insertStmt = conn.prepareStatement(insertSql, Statement.RETURN_GENERATED_KEYS);
             insertStmt.setString(1, card.getName());
             insertStmt.setString(2, card.getDepartment());
-            insertStmt.setString(3, card.getType().getStr());
+            insertStmt.setString(3, card.getType().name());
             insertStmt.executeUpdate();
 
             ResultSet generatedKeys = insertStmt.getGeneratedKeys();
@@ -647,7 +647,7 @@ public class LibraryManagementSystemImpl implements LibraryManagementSystem {
             PreparedStatement checkDupStmt = conn.prepareStatement(checkDupSql);
             checkDupStmt.setString(1, card.getName());
             checkDupStmt.setString(2, card.getDepartment());
-            checkDupStmt.setString(3, card.getType().getStr());
+            checkDupStmt.setString(3, card.getType().name());
             ResultSet dupRs = checkDupStmt.executeQuery();
             if (dupRs.next() && dupRs.getInt(1) > 0) {
                 rollback(conn);
@@ -659,7 +659,7 @@ public class LibraryManagementSystemImpl implements LibraryManagementSystem {
             PreparedStatement updateStmt = conn.prepareStatement(updateSql);
             updateStmt.setString(1, card.getName());
             updateStmt.setString(2, card.getDepartment());
-            updateStmt.setString(3, card.getType().getStr());
+            updateStmt.setString(3, card.getType().name());
             updateStmt.setInt(4, card.getCardId());
             updateStmt.executeUpdate();
 

@@ -18,12 +18,14 @@ const types = ref([{ // 借书证类型
 const newCardVisible = ref(false); // 新建借书证对话框可见性
 const removeCardVisible = ref(false); // 删除借书证对话框可见性
 const toRemove = ref(0); // 待删除借书证号
-const newCardInfo = ref({ // 待新建借书证信息
+
+const emptyCard = {
     name: '',
     department: '',
-    type: '学生'
-});
+    type: 'S'
+}
 
+const newCardInfo = ref(null);
 const modifyCardVisible = ref(false); // 修改信息对话框可见性
 const toModifyInfo = ref({});
 
@@ -138,7 +140,7 @@ onMounted(() => {
                     <div style="margin-left: 10px; text-align: start; font-size: 16px;">
                         <p style="padding: 2.5px;"><span style="font-weight: bold;">姓名：</span>{{ card.name }}</p>
                         <p style="padding: 2.5px;"><span style="font-weight: bold;">部门：</span>{{ card.department }}</p>
-                        <p style="padding: 2.5px;"><span style="font-weight: bold;">类型：</span>{{ card.type }}</p>
+                        <p style="padding: 2.5px;"><span style="font-weight: bold;">类型：</span>{{ types.find(type => type.value === card.type).label }}</p>
                     </div>
 
                     <el-divider />
@@ -158,7 +160,7 @@ onMounted(() => {
 
             <!-- 新建借书证卡片 -->
             <el-button class="newCardBox"
-                @click="newCardInfo.name = '', newCardInfo.department = '', newCardInfo.type = '学生', newCardVisible = true">
+                @click="newCardInfo = emptyCard; newCardVisible = true">
                 <el-icon style="height: 50px; width: 50px;">
                     <Plus style="height: 100%; width: 100%;" />
                 </el-icon>

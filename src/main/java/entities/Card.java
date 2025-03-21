@@ -2,24 +2,12 @@ package entities;
 
 import java.util.Objects;
 import java.util.Random;
-import com.fasterxml.jackson.annotation.JsonValue;
 
 public final class Card {
 
     public enum CardType {
-        Student("S"),
-        Teacher("T");
-
-        private final String str;
-
-        CardType(String str) {
-            this.str = str;
-        }
-
-        @JsonValue
-        public String getStr() {
-            return str;
-        }
+        S, // student
+        T; // teacher
 
         // `values` 和枚举自带的values()方法重名了，不要使用，请使用自带的valueOf()
         // public static CardType values(String s) {
