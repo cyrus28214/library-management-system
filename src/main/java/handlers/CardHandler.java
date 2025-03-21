@@ -5,6 +5,7 @@ import com.fasterxml.jackson.annotation.JsonProperty;
 import com.sun.net.httpserver.HttpExchange;
 import java.io.IOException;
 import java.util.logging.Logger;
+import java.util.Map;
 import service.LibraryManagementSystem;
 import queries.ApiResult;
 import utils.HttpUtil;
@@ -43,12 +44,16 @@ public class CardHandler implements HttpHandler {
                     break;
                 case "PUT":
                     this.handlePutRequest(exchange);
+                    break;
+                case "DELETE":
+                    this.handleDeleteRequest(exchange);
+                    break;
                 default:
                     exchange.sendResponseHeaders(405, -1);
             }
         } catch (Exception e) {
             exchange.sendResponseHeaders(500, 0);
-            log.severe(String.format("%s /borrow error: %s", requestMethod, e.getMessage()));
+            log.severe(String.format("%s /card error: %s", requestMethod, e.getMessage()));
             HttpUtil.jsonResponse(exchange, new ApiResult(false, e.getMessage()));
         }
     }
@@ -80,7 +85,7 @@ public class CardHandler implements HttpHandler {
 
     private void handlePutRequest(HttpExchange exchange) throws IOException {
         PutRequest request = HttpUtil.jsonRequest(exchange, PutRequest.class);
-        log.info("PUT /card with body: " + request);
+        log.info("PUT /card with query: " + request);
         Card.CardType type = Card.CardType.values(request.type());
         if (type == null) {
             exchange.sendResponseHeaders(400, -1);
@@ -89,6 +94,23 @@ public class CardHandler implements HttpHandler {
         }
         Card card = new Card(request.cardId(), request.name(), request.department(), type);
         ApiResult result = this.lms.modifyCardInfo(card);
+        exchange.sendResponseHeaders(200, 0);
+        HttpUtil.jsonResponse(exchange, result);
+    }
+
+    private void handleDeleteRequest(HttpExchange exchange) throws IOException {
+        String query = exchange.getRequestURI().getQuery();
+        Map<String, String> params = HttpUtil.extractParams(query);
+        log.info("DELETE /card with params: " + params);
+        // check cardId
+        if (!params.containsKey("cardId")) {
+            exchange.sendResponseHeaders(400, -1);
+            HttpUtil.jsonResponse(exchange, new ApiResult(false, "cardId is required"));
+            return;
+        }
+        String cardIdStr = params.get("cardId");
+        int cardId = Integer.parseInt(cardIdStr);
+        ApiResult result = this.lms.removeCard(cardId);
         exchange.sendResponseHeaders(200, 0);
         HttpUtil.jsonResponse(exchange, result);
     }

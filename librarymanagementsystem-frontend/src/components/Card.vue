@@ -55,12 +55,19 @@ const ConfirmModifyCard = async () => {
         message.value = reponse.data.message;
     }
     modifyCardVisible.value = false;
-    await QueryCards();
-
+    QueryCards();
 }
 
 const ConfirmRemoveCard = async () => {
-    // TODO: YOUR CODE HERE
+    const reponse = await axios.delete('/card', { params: {
+        cardId: toRemove.value
+    } });
+    if (reponse.data.message !== null) {
+        console.log(reponse.data.message);
+        message.value = reponse.data.message;
+    }
+    removeCardVisible.value = false;
+    QueryCards();
 }
 
 const QueryCards = async () => {
@@ -142,7 +149,7 @@ onMounted(() => {
                             toModifyInfo.department = card.department, toModifyInfo.type = card.type,
                             modifyCardVisible = true" circle />
                         <el-button type="danger" :icon="Delete" circle
-                            @click="toRemove = card.id, removeCardVisible = true"
+                            @click="toRemove = card.cardId, removeCardVisible = true"
                             style="margin-left: 30px;" />
                     </div>
 
