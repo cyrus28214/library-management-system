@@ -19,7 +19,7 @@ const formValid = computed(() =>
     props.book?.publishYear &&
     props.book?.author &&
     props.book?.price &&
-    props.book?.stock
+    (props.book?.stock || props.book?.deltaStock)
 );
 
 // 关闭对话框
@@ -59,8 +59,11 @@ const handleSubmit = () => {
             <el-form-item label="价格">
                 <el-input v-model="book.price" type="number" />
             </el-form-item>
-            <el-form-item label="库存">
+            <el-form-item v-if="!isEdit" label="库存">
                 <el-input v-model="book.stock" type="number" />
+            </el-form-item>
+            <el-form-item v-if="isEdit" label="库存变化">
+                <el-input v-model="book.deltaStock" type="number" />
             </el-form-item>
             <el-form-item>
                 <el-button type="primary" @click="handleSubmit" :disabled="!formValid">

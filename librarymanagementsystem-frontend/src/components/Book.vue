@@ -3,6 +3,8 @@ import axios from 'axios';
 import { ref, onMounted, computed } from 'vue';
 import BookDialog from './BookDialog.vue';
 
+const books = ref([]);
+
 const emptyBook = {
     title: '',
     category: '',
@@ -12,26 +14,15 @@ const emptyBook = {
     price: '',
     stock: ''
 };
-
-const books = ref([]);
 const newBook = ref(emptyBook);
 const addBookDialogVisible = ref(false);
 const toDeleteBook = ref(null);
 const deleteBookDialogVisible = ref(false);
 const message = ref('');
 const messageDialogVisible = ref(false);
+
 const toEditBook = ref(null);
 const editBookDialogVisible = ref(false);
-
-const addBookValid = computed(() => 
-    newBook.value.title &&
-    newBook.value.category &&
-    newBook.value.press &&
-    newBook.value.publishYear &&
-    newBook.value.author &&
-    newBook.value.price &&
-    newBook.value.stock
-);
 
 const queryBook = async () => {
     const reponse = await axios.get('/book');
@@ -55,15 +46,34 @@ const addBook = async () => {
         console.log(reponse.data.message);
     }
     if (reponse.data.ok) {
-        queryBook();
         newBook.value = emptyBook;
         addBookDialogVisible.value = false;
+        queryBook();
     }
+    
 }
 
-const onClickAddBook = async () => {
-    newBook.value = { ...emptyBook };
-    console.log(newBook.value);
+const editBook = async () => {
+    const reponse = await axios.put('/book', {
+        bookId: toEditBook.value.bookId,
+        category: toEditBook.value.category,
+        title: toEditBook.value.title,
+        press: toEditBook.value.press,
+        publishYear: parseInt(toEditBook.value.publishYear),
+        author: toEditBook.value.author,
+        price: parseFloat(toEditBook.value.price),
+        deltaStock: parseInt(toEditBook.value.deltaStock)
+    });
+    if (reponse.data.message !== null) {
+        message.value = reponse.data.message;
+        messageDialogVisible.value = true;
+        console.log(reponse.data.message);
+    }
+    if (reponse.data.ok) {
+        editBookDialogVisible.value = false;
+        queryBook();
+    }
+    
 }
 
 const onConfirmDeleteBook = async (bookId) => {
@@ -102,8 +112,8 @@ onMounted(() => {
                 <el-table-column prop="stock" label="库存" />
                 <el-table-column label="操作">
                     <template #default="scope">
-                        <el-button type="primary" @click="editBookDialogVisible = true; toEditBook = scope.row">编辑</el-button>
-                        <el-button type="danger" @click="deleteBookDialogVisible = true; toDeleteBook = scope.row">删除</el-button>
+                        <el-button type="primary" @click="toEditBook = {...scope.row, deltaStock: 0}; editBookDialogVisible = true">编辑</el-button>
+                        <el-button type="danger" @click="toDeleteBook = scope.row; deleteBookDialogVisible = true">删除</el-button>
                     </template>
                 </el-table-column>
             </el-table>
@@ -112,6 +122,9 @@ onMounted(() => {
 
         <!-- 添加图书对话框 -->
         <BookDialog v-model="addBookDialogVisible" :book="newBook" @submit="addBook" />
+
+        <!-- 编辑图书对话框 -->
+        <BookDialog v-model="editBookDialogVisible" isEdit :book="toEditBook" @submit="editBook" />
 
         <!-- 确认删除图书对话框 -->
         <el-dialog v-model="deleteBookDialogVisible" title="删除图书" width="30%">
