@@ -160,6 +160,15 @@ public interface LibraryManagementSystem {
     ApiResult removeCard(int cardId);
 
     /**
+     *  modify card information by card_id
+     * 
+     * The id should not be modified
+     * 
+     * @param card the card to be modified
+     */
+    ApiResult modifyCardInfo(Card card);
+
+    /**
      * list all cards order by card_id.
      *
      * @return query results should be returned by ApiResult.payload

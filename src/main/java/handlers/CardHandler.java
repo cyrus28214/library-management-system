@@ -9,7 +9,8 @@ import queries.ApiResult;
 import utils.HttpUtil;
 import entities.Card;
 
-record PostCardRequest(String name, String department, String type) {}
+record PostRequest(String name, String department, String type) {}
+record PutRequest(int cardId, String name, String department, String type) {}
 
 public class CardHandler implements HttpHandler {
     private final Logger log = Logger.getLogger(CardHandler.class.getName());
@@ -29,6 +30,8 @@ public class CardHandler implements HttpHandler {
             case "POST":
                 this.handlePostRequest(exchange);
                 break;
+            case "PUT":
+                this.handlePutRequest(exchange);
             default:
                 exchange.sendResponseHeaders(405, -1);
         }
@@ -41,7 +44,7 @@ public class CardHandler implements HttpHandler {
     }
 
     private void handlePostRequest(HttpExchange exchange) throws IOException {
-        PostCardRequest request = HttpUtil.jsonRequest(exchange, PostCardRequest.class);
+        PostRequest request = HttpUtil.jsonRequest(exchange, PostRequest.class);
         log.info("POST /card with body: " + request);
         Card.CardType type = Card.CardType.values(request.type());
         if (type == null) {
@@ -55,6 +58,21 @@ public class CardHandler implements HttpHandler {
             type
         );
         ApiResult result = this.lms.registerCard(card);
+        exchange.sendResponseHeaders(200, 0);
+        HttpUtil.jsonResponse(exchange, result);
+    }
+
+    private void handlePutRequest(HttpExchange exchange) throws IOException {
+        PutRequest request = HttpUtil.jsonRequest(exchange, PutRequest.class);
+        log.info("PUT /card with body: " + request);
+        Card.CardType type = Card.CardType.values(request.type());
+        if (type == null) {
+            exchange.sendResponseHeaders(400, -1);
+            HttpUtil.jsonResponse(exchange, new ApiResult(false, "Invalid card type"));
+            return;
+        }
+        Card card = new Card(request.cardId(), request.name(), request.department(), type);
+        ApiResult result = this.lms.modifyCardInfo(card);
         exchange.sendResponseHeaders(200, 0);
         HttpUtil.jsonResponse(exchange, result);
     }

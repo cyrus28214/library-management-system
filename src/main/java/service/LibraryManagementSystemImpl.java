@@ -214,7 +214,7 @@ public class LibraryManagementSystemImpl implements LibraryManagementSystem {
         Connection conn = connector.getConn();
         try {
             // 检查图书是否存在
-            String checkExistSql = "SELECT stock FROM book WHERE book_id = ?";
+            String checkExistSql = "SELECT stock FROM book WHERE book_id = ? FOR UPDATE";
             PreparedStatement checkExistStmt = conn.prepareStatement(checkExistSql);
             checkExistStmt.setInt(1, book.getBookId());
             ResultSet existRs = checkExistStmt.executeQuery();
@@ -624,6 +624,49 @@ public class LibraryManagementSystemImpl implements LibraryManagementSystem {
 
             return new ApiResult(true, new CardList(cards));
         } catch (Exception e) {
+            return new ApiResult(false, e.getMessage());
+        }
+    }
+
+    
+    @Override
+    public ApiResult modifyCardInfo(Card card) {
+        Connection conn = connector.getConn();
+        try {
+            String checkSql = "SELECT count(*) FROM card WHERE card_id = ? FOR UPDATE";
+            PreparedStatement checkExistStmt = conn.prepareStatement(checkSql);
+            checkExistStmt.setInt(1, card.getCardId());
+            ResultSet checkRs = checkExistStmt.executeQuery();
+            if (!checkRs.next()) {
+                rollback(conn);
+                return new ApiResult(false, "Card not found");
+            }
+
+            // check if duplicated
+            String checkDupSql = "SELECT count(*) FROM card WHERE name = ? AND department = ? AND type = ?";
+            PreparedStatement checkDupStmt = conn.prepareStatement(checkDupSql);
+            checkDupStmt.setString(1, card.getName());
+            checkDupStmt.setString(2, card.getDepartment());
+            checkDupStmt.setString(3, card.getType().getStr());
+            ResultSet dupRs = checkDupStmt.executeQuery();
+            if (dupRs.next() && dupRs.getInt(1) > 0) {
+                rollback(conn);
+                return new ApiResult(false, "Card with same info already exists");
+            }
+
+            // update card info
+            String updateSql = "UPDATE card SET name = ?, department = ?, type = ? WHERE card_id = ?";
+            PreparedStatement updateStmt = conn.prepareStatement(updateSql);
+            updateStmt.setString(1, card.getName());
+            updateStmt.setString(2, card.getDepartment());
+            updateStmt.setString(3, card.getType().getStr());
+            updateStmt.setInt(4, card.getCardId());
+            updateStmt.executeUpdate();
+
+            commit(conn);
+            return new ApiResult(true, null);
+        } catch (Exception e) {
+            rollback(conn);
             return new ApiResult(false, e.getMessage());
         }
     }
