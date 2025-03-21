@@ -115,11 +115,11 @@ const borrowBook = async () => {
 }
 
 const returnBook = async () => {
-    const reponse = await axios.post('/borrow/return', {
+    const reponse = await axios.delete('/borrow', { params: {
         bookId: toReturnBook.value.bookId,
         cardId: toReturnBook.value.cardId,
         returnTime: new Date().getTime()
-    });
+    }});
     handleApiMessage(reponse);
     if (reponse.data.ok) {
         returnBookDialogVisible.value = false;

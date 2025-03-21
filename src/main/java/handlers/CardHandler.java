@@ -70,7 +70,7 @@ public class CardHandler implements HttpHandler {
         log.info("POST /card with body: " + request);
         Card.CardType type = Card.CardType.valueOf(request.type());
         if (type == null) {
-            exchange.sendResponseHeaders(400, -1);
+            exchange.sendResponseHeaders(400, 0);
             HttpUtil.jsonResponse(exchange, new ApiResult(false, "Invalid card type"));
             return;
         }
@@ -89,7 +89,7 @@ public class CardHandler implements HttpHandler {
         log.info("PUT /card with query: " + request);
         Card.CardType type = Card.CardType.valueOf(request.type());
         if (type == null) {
-            exchange.sendResponseHeaders(400, -1);
+            exchange.sendResponseHeaders(400, 0);
             HttpUtil.jsonResponse(exchange, new ApiResult(false, "Invalid card type"));
             return;
         }
@@ -105,7 +105,7 @@ public class CardHandler implements HttpHandler {
         log.info("DELETE /card with params: " + params);
         // check cardId
         if (!params.containsKey("cardId")) {
-            exchange.sendResponseHeaders(400, -1);
+            exchange.sendResponseHeaders(400, 0);
             HttpUtil.jsonResponse(exchange, new ApiResult(false, "cardId is required"));
             return;
         }

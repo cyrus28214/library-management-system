@@ -97,6 +97,7 @@ public class BookHandler implements HttpHandler {
             }
         } catch (Exception e) {
             exchange.sendResponseHeaders(500, 0);
+            e.printStackTrace();
             log.severe(e.getMessage());
             HttpUtil.jsonResponse(exchange, new ApiResult(false, e.getMessage()));
         }
@@ -122,7 +123,7 @@ public class BookHandler implements HttpHandler {
         Map<String, String> params = HttpUtil.extractParams(query);
         log.info("DELETE /book with params: " + params.toString());
         if (!params.containsKey("bookId")) {
-            exchange.sendResponseHeaders(400, -1);
+            exchange.sendResponseHeaders(400, 0);
             HttpUtil.jsonResponse(exchange, new ApiResult(false, "bookId is required"));
         }
         String bookIdStr = params.get("bookId");

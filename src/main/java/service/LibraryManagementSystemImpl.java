@@ -192,7 +192,7 @@ public class LibraryManagementSystemImpl implements LibraryManagementSystem {
             ResultSet borrowRs = checkBorrowStmt.executeQuery();
             if (borrowRs.next() && borrowRs.getInt(1) > 0) {
                 rollback(conn);
-                return new ApiResult(false, "Book has unreturned records");
+                return new ApiResult(false, "图书有未归还记录，不能删除");
             }
 
             // remove the book
@@ -401,7 +401,7 @@ public class LibraryManagementSystemImpl implements LibraryManagementSystem {
             ResultSet cardRs = checkCardStmt.executeQuery();
             if (!cardRs.next()) {
                 rollback(conn);
-                return new ApiResult(false, "Card not found");
+                return new ApiResult(false, "此卡不存在");
             }
 
             // check if the book has been borrowed
@@ -449,14 +449,14 @@ public class LibraryManagementSystemImpl implements LibraryManagementSystem {
             ResultSet borrowRs = checkBorrowStmt.executeQuery();
             if (!borrowRs.next()) {
                 rollback(conn);
-                return new ApiResult(false, "Borrow record not found");
+                return new ApiResult(false, "此卡没有借阅此书或已归还");
             }
 
             // check if the return time is valid
             long borrowTime = borrowRs.getLong("borrow_time");
             if (borrow.getReturnTime() <= borrowTime) {
                 rollback(conn);
-                return new ApiResult(false, "Invalid return time");
+                return new ApiResult(false, "归还时间无效");
             }
 
             // update the borrow record
@@ -582,7 +582,7 @@ public class LibraryManagementSystemImpl implements LibraryManagementSystem {
             
             if (borrowRs.next() && borrowRs.getInt(1) > 0) {
                 rollback(conn);
-                return new ApiResult(false, "Card has unreturned books");
+                return new ApiResult(false, "借书证有未归还图书，不能删除");
             }
 
             // remove the card
@@ -593,7 +593,7 @@ public class LibraryManagementSystemImpl implements LibraryManagementSystem {
             
             if (affectedRows == 0) {
                 rollback(conn);
-                return new ApiResult(false, "Card not found");
+                return new ApiResult(false, "此卡不存在");
             }
 
             commit(conn);
@@ -639,7 +639,7 @@ public class LibraryManagementSystemImpl implements LibraryManagementSystem {
             ResultSet checkRs = checkExistStmt.executeQuery();
             if (!checkRs.next()) {
                 rollback(conn);
-                return new ApiResult(false, "Card not found");
+                return new ApiResult(false, "此卡不存在");
             }
 
             // check if duplicated
