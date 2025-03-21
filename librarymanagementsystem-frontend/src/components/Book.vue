@@ -2,6 +2,7 @@
 import axios from 'axios';
 import { ref, onMounted, computed } from 'vue';
 import BookDialog from './BookDialog.vue';
+import { Delete, Edit, Tickets, TopRight, BottomLeft, Plus } from '@element-plus/icons-vue';
 
 const books = ref([]);
 
@@ -32,10 +33,26 @@ const importBookDialogVisible = ref(false);
 const uploadRef = ref(null);
 const fileContent = ref(null);
 
+const toBorrowBook = ref(null);
+const borrowBookDialogVisible = ref(false);
+
+const toReturnBook = ref(null);
+const returnBookDialogVisible = ref(false);
+
+const handleApiMessage = (reponse) => {
+    if (reponse.data.message !== null) {
+        message.value = reponse.data.message;
+        messageDialogVisible.value = true;
+        console.log(reponse.data.message);
+    }
+}
+
 const queryBook = async () => {
     const reponse = await axios.get('/book');
-    books.value = reponse.data.payload.results;
-    console.log(reponse.data);
+    handleApiMessage(reponse);
+    if (reponse.data.ok) {
+        books.value = reponse.data.payload.results;
+    }
 }
 
 const addBook = async () => {
@@ -48,17 +65,12 @@ const addBook = async () => {
         price: parseFloat(newBook.value.price),
         stock: parseInt(newBook.value.stock)
     });
-    if (reponse.data.message !== null) {
-        message.value = reponse.data.message;
-        messageDialogVisible.value = true;
-        console.log(reponse.data.message);
-    }
+    handleApiMessage(reponse);
     if (reponse.data.ok) {
         newBook.value = emptyBook;
         addBookDialogVisible.value = false;
         queryBook();
     }
-    
 }
 
 const editBook = async () => {
@@ -71,11 +83,7 @@ const editBook = async () => {
         author: toEditBook.value.author,
         price: parseFloat(toEditBook.value.price)
     });
-    if (reponse.data.message !== null) {
-        message.value = reponse.data.message;
-        messageDialogVisible.value = true;
-        console.log(reponse.data.message);
-    }
+    handleApiMessage(reponse);
     if (reponse.data.ok) {
         editBookDialogVisible.value = false;
         queryBook();
@@ -87,13 +95,34 @@ const adjustStock = async () => {
         bookId: toAdjustStockBook.value.bookId,
         deltaStock: parseInt(deltaStock.value)
     });
-    if (reponse.data.message !== null) {
-        message.value = reponse.data.message;
-        messageDialogVisible.value = true;
-        console.log(reponse.data.message);
-    }
+    handleApiMessage(reponse);
     if (reponse.data.ok) {
         adjustStockDialogVisible.value = false;
+        queryBook();
+    }
+}
+
+const borrowBook = async () => {
+    const reponse = await axios.post('/borrow', {
+        bookId: toBorrowBook.value.bookId,
+        cardId: toBorrowBook.value.cardId
+    });
+    handleApiMessage(reponse);
+    if (reponse.data.ok) {
+        borrowBookDialogVisible.value = false;
+        queryBook();
+    }
+}
+
+const returnBook = async () => {
+    const reponse = await axios.post('/borrow/return', {
+        bookId: toReturnBook.value.bookId,
+        cardId: toReturnBook.value.cardId,
+        returnTime: new Date().getTime()
+    });
+    handleApiMessage(reponse);
+    if (reponse.data.ok) {
+        returnBookDialogVisible.value = false;
         queryBook();
     }
 }
@@ -186,11 +215,43 @@ onMounted(() => {
                 <el-table-column prop="author" label="作者" />
                 <el-table-column prop="price" label="价格" />
                 <el-table-column prop="stock" label="库存" />
-                <el-table-column label="操作">
+                <el-table-column label="操作" width="240">
                     <template #default="scope">
-                        <el-button type="primary" @click="toEditBook = {...scope.row}; editBookDialogVisible = true">编辑信息</el-button>
-                        <el-button type="warning" @click="toAdjustStockBook = {...scope.row, deltaStock: 0}; adjustStockDialogVisible = true">调整库存</el-button>
-                        <el-button type="danger" @click="toDeleteBook = scope.row; deleteBookDialogVisible = true">删除</el-button>
+                        <el-space wrap>
+                            <el-button 
+                                type="primary" 
+                                size="small" 
+                                :icon="TopRight"
+                                :disabled="scope.row.stock <= 0"
+                                @click="toBorrowBook = {...scope.row}; borrowBookDialogVisible = true">
+                                借阅
+                            </el-button>
+                            <el-button 
+                                type="success" 
+                                size="small" 
+                                :icon="BottomLeft"
+                                @click="toReturnBook = {...scope.row}; returnBookDialogVisible = true">
+                                归还
+                            </el-button>
+                            <el-dropdown>
+                                <el-button type="info" size="small" plain>
+                                    管理
+                                </el-button>
+                                <template #dropdown>
+                                    <el-dropdown-menu>
+                                        <el-dropdown-item @click="toEditBook = {...scope.row}; editBookDialogVisible = true">
+                                            <el-icon><Edit /></el-icon> 编辑信息
+                                        </el-dropdown-item>
+                                        <el-dropdown-item @click="toAdjustStockBook = {...scope.row, deltaStock: 0}; adjustStockDialogVisible = true">
+                                            <el-icon><Tickets /></el-icon> 调整库存
+                                        </el-dropdown-item>
+                                        <el-dropdown-item divided @click="toDeleteBook = scope.row; deleteBookDialogVisible = true">
+                                            <el-icon><Delete /></el-icon> 删除
+                                        </el-dropdown-item>
+                                    </el-dropdown-menu>
+                                </template>
+                            </el-dropdown>
+                        </el-space>
                     </template>
                 </el-table-column>
             </el-table>
@@ -263,6 +324,41 @@ onMounted(() => {
                     <el-button @click="importBookDialogVisible = false">取消</el-button>
                 </el-form-item>
             </el-form>
+        </el-dialog>
+
+        <!-- 借书对话框 -->
+        <el-dialog v-model="borrowBookDialogVisible" title="借阅图书" width="30%">
+            <template v-if="toBorrowBook">
+                <div style="margin-bottom: 10px;">图书：{{ toBorrowBook.title }}</div>
+                <div style="margin-bottom: 10px;">作者：{{ toBorrowBook.author }}</div>
+                <div style="margin-bottom: 10px;">库存：{{ toBorrowBook.stock }}</div>
+                <el-form>
+                    <el-form-item label="借书证ID">
+                        <el-input v-model="toBorrowBook.cardId" type="number" placeholder="请输入借书证ID" />
+                    </el-form-item>
+                    <el-form-item>
+                        <el-button type="primary" :disabled="!toBorrowBook.cardId" @click="borrowBook">确认借阅</el-button>
+                        <el-button @click="borrowBookDialogVisible = false">取消</el-button>
+                    </el-form-item>
+                </el-form>
+            </template>
+        </el-dialog>
+
+        <!-- 还书对话框 -->
+        <el-dialog v-model="returnBookDialogVisible" title="归还图书" width="30%">
+            <template v-if="toReturnBook">
+                <div style="margin-bottom: 10px;">图书：{{ toReturnBook.title }}</div>
+                <div style="margin-bottom: 10px;">作者：{{ toReturnBook.author }}</div>
+                <el-form>
+                    <el-form-item label="借书证ID">
+                        <el-input v-model="toReturnBook.cardId" type="number" placeholder="请输入借书证ID" />
+                    </el-form-item>
+                    <el-form-item>
+                        <el-button type="primary" :disabled="!toReturnBook.cardId" @click="returnBook">确认归还</el-button>
+                        <el-button @click="returnBookDialogVisible = false">取消</el-button>
+                    </el-form-item>
+                </el-form>
+            </template>
         </el-dialog>
     </el-scrollbar>
 
