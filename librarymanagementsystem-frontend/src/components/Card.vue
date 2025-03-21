@@ -39,10 +39,13 @@ const ConfirmNewCard = async () => {
         department: newCardInfo.value.department,
         type: newCardInfo.value.type
     });
-
-    ElMessage.success("借书证新建成功") // 显示消息提醒
-    newCardVisible.value = false // 将对话框设置为不可见
-    QueryCards() // 重新查询借书证以刷新页面
+    if (response.data.ok) {
+        ElMessage.success("借书证新建成功");
+        newCardVisible.value = false;
+    } else {
+        ElMessage.error(response.data.message) // 显示消息提醒
+    }
+    QueryCards();
 }
 
 const ConfirmModifyCard = async () => {
