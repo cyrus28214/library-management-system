@@ -10,6 +10,7 @@ import utils.HttpUtil;
 import queries.BookQueryConditions;
 import entities.Book;
 import com.fasterxml.jackson.annotation.JsonProperty;
+import java.util.Map;
 
 record PostRequest(
     @JsonProperty(required = true) String category,
@@ -40,6 +41,9 @@ public class BookHandler implements HttpHandler {
                 case "POST":
                     this.handlePostRequest(exchange);
                     break;
+                case "DELETE":
+                    this.handleDeleteRequest(exchange);
+                    break;
                 default:
                     exchange.sendResponseHeaders(405, -1);
             }
@@ -61,6 +65,21 @@ public class BookHandler implements HttpHandler {
         log.info("POST /book with body: " + request);
         Book newBook = new Book(request.category(), request.title(), request.press(), request.publishYear(), request.author(), request.price(), request.stock());
         ApiResult result = this.lms.storeBook(newBook);
+        exchange.sendResponseHeaders(200, 0);
+        HttpUtil.jsonResponse(exchange, result);
+    }
+
+    private void handleDeleteRequest(HttpExchange exchange) throws IOException {
+        String query = exchange.getRequestURI().getQuery();
+        Map<String, String> params = HttpUtil.extractParams(query);
+        log.info("DELETE /book with params: " + params.toString());
+        if (!params.containsKey("bookId")) {
+            exchange.sendResponseHeaders(400, -1);
+            HttpUtil.jsonResponse(exchange, new ApiResult(false, "bookId is required"));
+        }
+        String bookIdStr = params.get("bookId");
+        int bookId = Integer.parseInt(bookIdStr);
+        ApiResult result = this.lms.removeBook(bookId);
         exchange.sendResponseHeaders(200, 0);
         HttpUtil.jsonResponse(exchange, result);
     }
