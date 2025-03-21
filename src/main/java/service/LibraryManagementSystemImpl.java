@@ -84,7 +84,7 @@ public class LibraryManagementSystemImpl implements LibraryManagementSystem {
             // check if the new stock is valid
             if (newStock < 0) {
                 rollback(conn);
-                return new ApiResult(false, "Stock cannot be negative");
+                return new ApiResult(false, "库存不能为负");
             }
             
             // update the stock

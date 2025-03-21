@@ -11,6 +11,8 @@ import queries.BookQueryConditions;
 import entities.Book;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import java.util.Map;
+import java.util.List;
+import java.util.ArrayList;
 
 record BookPostRequest(
     @JsonProperty(required = true) String category,
@@ -48,6 +50,10 @@ record BookStockRequest(
     @JsonProperty(required = true) int deltaStock
 ) {}
 
+record BookBatchPostRequest(
+    @JsonProperty(required = true) List<BookPostRequest> books
+) {}
+
 public class BookHandler implements HttpHandler {
     private final Logger log = Logger.getLogger(CardHandler.class.getName());
     private final LibraryManagementSystem lms;
@@ -67,7 +73,11 @@ public class BookHandler implements HttpHandler {
                     this.handleGetRequest(exchange);
                     break;  
                 case "POST":
-                    this.handlePostRequest(exchange);
+                    if (path.endsWith("/batch")) {
+                        this.handleBatchPostRequest(exchange);
+                    } else {
+                        this.handlePostRequest(exchange);
+                    }
                     break;
                 case "DELETE":
                     this.handleDeleteRequest(exchange);
@@ -87,7 +97,7 @@ public class BookHandler implements HttpHandler {
             }
         } catch (Exception e) {
             exchange.sendResponseHeaders(500, 0);
-            log.severe(String.format("%s /book error: %s", requestMethod, e.getMessage()));
+            log.severe(e.getMessage());
             HttpUtil.jsonResponse(exchange, new ApiResult(false, e.getMessage()));
         }
     }
@@ -147,6 +157,29 @@ public class BookHandler implements HttpHandler {
         log.info("PUT /book/stock with body: " + request);
         
         ApiResult result = this.lms.incBookStock(request.bookId(), request.deltaStock());
+        exchange.sendResponseHeaders(200, 0);
+        HttpUtil.jsonResponse(exchange, result);
+    }
+
+    private void handleBatchPostRequest(HttpExchange exchange) throws IOException {
+        BookBatchPostRequest request = HttpUtil.jsonRequest(exchange, BookBatchPostRequest.class);
+        log.info("POST /book/batch with " + request.books().size() + " books");
+        
+        List<Book> books = new ArrayList<>();
+        for (BookPostRequest bookRequest : request.books()) {
+            Book newBook = new Book(
+                bookRequest.category(), 
+                bookRequest.title(), 
+                bookRequest.press(), 
+                bookRequest.publishYear(), 
+                bookRequest.author(), 
+                bookRequest.price(), 
+                bookRequest.stock()
+            );
+            books.add(newBook);
+        }
+        
+        ApiResult result = this.lms.storeBook(books);
         exchange.sendResponseHeaders(200, 0);
         HttpUtil.jsonResponse(exchange, result);
     }

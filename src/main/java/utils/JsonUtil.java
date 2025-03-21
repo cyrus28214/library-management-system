@@ -23,7 +23,7 @@ public class JsonUtil {
             return objectMapper.readValue(json, valueType);
         } catch (Exception e) {
             log.severe("Failed to convert JSON string to object. JSON: " + json);
-            throw new RuntimeException("Failed to convert JSON string to object", e);
+            throw new RuntimeException("Failed to convert JSON string to object" + e.getMessage());
         }
     }
 }
