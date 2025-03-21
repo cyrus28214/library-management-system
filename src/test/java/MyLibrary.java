@@ -46,10 +46,7 @@ public class MyLibrary {
         /* create cards */
         List<Card> cardList = new ArrayList<>();
         for (int i = 0; i < nCards; i++) {
-            Card c = new Card();
-            c.setName(String.format("User%05d", i));
-            c.setDepartment(RandomData.randomDepartment());
-            c.setType(Card.CardType.random());
+            Card c = RandomData.randomCard();
             cardList.add(c);
             Assert.assertTrue(library.registerCard(c).ok);
         }

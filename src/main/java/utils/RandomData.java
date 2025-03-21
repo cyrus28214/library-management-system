@@ -1,6 +1,8 @@
 package utils;
 
 import entities.Book;
+import entities.Card;
+
 import org.apache.commons.lang3.RandomUtils;
 
 import java.util.Arrays;
@@ -27,6 +29,14 @@ public final class RandomData {
     public static Book randomBook() {
         return new Book(randomCategory(), randomTitle(), randomPress(), randomPublishYear(),
                 randomAuthor(), randomPrice(), randomStock());
+    }
+
+    public static String randomUsername() {
+        return String.format("User%05d", new Random().nextInt(100000));
+    }
+
+    public static Card randomCard() {
+        return new Card(0, randomUsername(), randomDepartment(), Card.CardType.random());
     }
 
     public static String randomCategory() {
