@@ -12,11 +12,32 @@ import java.util.logging.Logger;
 import java.util.logging.ConsoleHandler;
 import utils.LogFormatter;
 import java.util.logging.LogManager;
+// import utils.RandomData;
+// import entities.Book;
+// import java.util.List;
+// import java.util.ArrayList;
+// import java.io.File;
+// import java.io.FileWriter;
+// import java.io.IOException;
+// import utils.JsonUtil;
+
 public class Main {
 
     private static final Logger log = Logger.getLogger(Main.class.getName());
 
     public static void main(String[] args) {
+        // // generate 30 random books and save to json file
+        // List<Book> books = new ArrayList<>();
+        // for (int i = 0; i < 30; i++) {
+        //     books.add(RandomData.randomBook());
+        // }
+        // String json = JsonUtil.toJson(books);
+        // File file = new File("books.json");
+        // try (FileWriter writer = new FileWriter(file)) {
+        //     writer.write(json);
+        // } catch (IOException e) {
+        //     e.printStackTrace();
+        // }
         try {
             // configure logger
             LogManager.getLogManager().reset();

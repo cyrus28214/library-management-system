@@ -135,7 +135,7 @@ public class LibraryManagementSystemImpl implements LibraryManagementSystem {
             ResultSet rs = checkStmt.executeQuery();
             if (rs.next() && rs.getInt(1) > 0) {
                 rollback(conn);
-                return new ApiResult(false, "Duplicate books found");
+                return new ApiResult(false, "新增图书与已存在图书重复");
             }
 
             // bulk insert books

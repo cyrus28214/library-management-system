@@ -28,6 +28,10 @@ const toAdjustStockBook = ref(null);
 const deltaStock = ref(0);
 const adjustStockDialogVisible = ref(false);
 
+const importBookDialogVisible = ref(false);
+const uploadRef = ref(null);
+const fileContent = ref(null);
+
 const queryBook = async () => {
     const reponse = await axios.get('/book');
     books.value = reponse.data.payload.results;
@@ -108,6 +112,57 @@ const onConfirmDeleteBook = async (bookId) => {
     }
 }
 
+const uploadFile = (file) => {
+    if (!file || !file.raw) return;
+    
+    const reader = new FileReader();
+    reader.onload = (e) => {
+        try {
+            const content = JSON.parse(e.target.result);
+            if (!Array.isArray(content)) {
+                message.value = "文件格式错误，文件内容必须是一个数组";
+                messageDialogVisible.value = true;
+                fileContent.value = null;
+                uploadRef.value.clearFiles();
+                return;
+            }
+            fileContent.value = content;
+        } catch (error) {
+            message.value = "文件格式错误，请上传有效的JSON文件";
+            messageDialogVisible.value = true;
+            fileContent.value = null;
+            uploadRef.value.clearFiles();
+        }
+    };
+    reader.readAsText(file.raw);
+}
+
+const importBooks = async () => {
+    if (!fileContent.value) {
+        message.value = "请先上传有效的JSON文件";
+        messageDialogVisible.value = true;
+        return;
+    }
+    
+    try {
+        const response = await axios.post('/book/batch', {
+            books: fileContent.value
+        });
+        if (response.data.message !== null) {
+            message.value = response.data.message;
+            messageDialogVisible.value = true;
+        }
+        if (response.data.ok) {
+            importBookDialogVisible.value = false;
+            fileContent.value = null;
+            queryBook();
+        }
+    } catch (error) {
+        message.value = "导入失败：" + (error.response?.data?.message || error.message);
+        messageDialogVisible.value = true;
+    }
+}
+
 onMounted(() => {
     queryBook();
 })
@@ -118,6 +173,7 @@ onMounted(() => {
         <div style="margin: 20px 40px 0 40px;">
             <div style="margin-bottom: 10px;">
                 <el-button type="primary" @click="addBookDialogVisible = true">添加图书</el-button>
+                <el-button type="success" @click="importBookDialogVisible = true">批量导入</el-button>
             </div>
 
             <el-table :data="books" height="600" :table-layout="'auto'"
@@ -183,6 +239,30 @@ onMounted(() => {
                     <el-button @click="messageDialogVisible = false">确定</el-button>
                 </span>
             </template>
+        </el-dialog>
+
+        <!-- 批量导入对话框 -->
+        <el-dialog v-model="importBookDialogVisible" title="批量导入图书" width="30%">
+            <el-form>
+                <el-form-item label="选择文件">
+                    <el-upload
+                        action=""
+                        :auto-upload="false"
+                        accept=".json"
+                        :limit="1"
+                        :on-change="uploadFile"
+                        ref="uploadRef">
+                        <el-button type="primary">选择JSON文件</el-button>
+                    </el-upload>
+                </el-form-item>
+                <div v-if="fileContent" style="margin-bottom: 10px;">
+                    <p>文件已加载，共 {{ fileContent.length }} 条记录</p>
+                </div>
+                <el-form-item>
+                    <el-button type="primary" @click="importBooks" :disabled="!fileContent">导入</el-button>
+                    <el-button @click="importBookDialogVisible = false">取消</el-button>
+                </el-form-item>
+            </el-form>
         </el-dialog>
     </el-scrollbar>
 
