@@ -673,6 +673,37 @@ public class LibraryTest {
         }
     }
 
+    @Test
+    public void modifyCardInfoTest() {
+        /* simply insert N cards */
+        List<Card> cardList = new ArrayList<>();
+        for (int i = 0; i < 100; i++) {
+            Card card = RandomData.randomCard();
+            Assert.assertTrue(library.registerCard(card).ok);
+            cardList.add(card);
+        }
+        /* randomly modify cards */
+        Collections.shuffle(cardList);
+        for (int i = 0; i < 20; i++) {
+            Card mCard = cardList.get(0);
+            Card newCard = RandomData.randomCard();
+            newCard.setCardId(mCard.getCardId());
+            Assert.assertTrue(library.modifyCardInfo(newCard).ok);
+            cardList.remove(0);
+            cardList.add(newCard);
+        }
+        /* compare results */
+        ApiResult result = library.showCards();
+        Assert.assertTrue(result.ok);
+        List<Card> resCard = ((CardList) result.payload).getCards();
+        cardList.sort(Comparator.comparingInt(Card::getCardId));
+        for (int i = 0; i < cardList.size(); i++) {
+            Card o1 = cardList.get(i);
+            Card o2 = resCard.get(i);
+            Assert.assertEquals(o1.toString(), o2.toString());
+        }
+    }
+
     private List<Book> verifyQueryResult(List<Book> books, BookQueryConditions conditions) {
         Stream<Book> stream = books.stream();
         if (conditions.getCategory() != null) {
