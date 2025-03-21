@@ -236,7 +236,7 @@ onMounted(() => {
         </el-dialog>
 
         <!-- 信息对话框 -->  
-        <el-dialog v-model="messageVisible" width="30%" align-center>
+        <el-dialog :visible="messageVisible" width="30%" align-center>
             <span>{{ message }}</span>
             <template #footer>
                 <span class="dialog-footer">
