@@ -618,7 +618,7 @@ public class LibraryManagementSystemImpl implements LibraryManagementSystem {
                 card.setCardId(rs.getInt("card_id"));
                 card.setName(rs.getString("name"));
                 card.setDepartment(rs.getString("department"));
-                card.setType(Card.CardType.values(rs.getString("type")));
+                card.setType(Card.CardType.valueOf(rs.getString("type")));
                 cards.add(card);
             }
 

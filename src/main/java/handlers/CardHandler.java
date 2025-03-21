@@ -16,6 +16,7 @@ record PostRequest(
     @JsonProperty(required = true) String department,
     @JsonProperty(required = true) String type
 ) {}
+
 record PutRequest(
     @JsonProperty(required = true) int cardId,
     @JsonProperty(required = true) String name,
@@ -67,7 +68,7 @@ public class CardHandler implements HttpHandler {
     private void handlePostRequest(HttpExchange exchange) throws IOException {
         PostRequest request = HttpUtil.jsonRequest(exchange, PostRequest.class);
         log.info("POST /card with body: " + request);
-        Card.CardType type = Card.CardType.values(request.type());
+        Card.CardType type = Card.CardType.valueOf(request.type());
         if (type == null) {
             exchange.sendResponseHeaders(400, -1);
             HttpUtil.jsonResponse(exchange, new ApiResult(false, "Invalid card type"));
@@ -84,9 +85,10 @@ public class CardHandler implements HttpHandler {
     }
 
     private void handlePutRequest(HttpExchange exchange) throws IOException {
+        log.info(exchange.getRequestBody().toString());
         PutRequest request = HttpUtil.jsonRequest(exchange, PutRequest.class);
         log.info("PUT /card with query: " + request);
-        Card.CardType type = Card.CardType.values(request.type());
+        Card.CardType type = Card.CardType.valueOf(request.type());
         if (type == null) {
             exchange.sendResponseHeaders(400, -1);
             HttpUtil.jsonResponse(exchange, new ApiResult(false, "Invalid card type"));

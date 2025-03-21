@@ -21,15 +21,16 @@ public final class Card {
             return str;
         }
 
-        public static CardType values(String s) {
-            if ("S".equals(s)) {
-                return Student;
-            } else if ("T".equals(s)) {
-                return Teacher;
-            } else {
-                return null;
-            }
-        }
+        // `values` 和枚举自带的values()方法重名了，不要使用，请使用自带的valueOf()
+        // public static CardType values(String s) {
+        //     if ("S".equals(s)) {
+        //         return Student;
+        //     } else if ("T".equals(s)) {
+        //         return Teacher;
+        //     } else {
+        //         return null;
+        //     }
+        // }
 
         public static CardType random() {
             return values()[new Random().nextInt(values().length)];
