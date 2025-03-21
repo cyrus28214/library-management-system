@@ -12,7 +12,7 @@ import entities.Book;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import java.util.Map;
 
-record PostRequest(
+record BookPostRequest(
     @JsonProperty(required = true) String category,
     @JsonProperty(required = true) String title,
     @JsonProperty(required = true) String press,
@@ -61,7 +61,7 @@ public class BookHandler implements HttpHandler {
     }
 
     private void handlePostRequest(HttpExchange exchange) throws IOException {
-        PostRequest request = HttpUtil.jsonRequest(exchange, PostRequest.class);
+        BookPostRequest request = HttpUtil.jsonRequest(exchange, BookPostRequest.class);
         log.info("POST /book with body: " + request);
         Book newBook = new Book(request.category(), request.title(), request.press(), request.publishYear(), request.author(), request.price(), request.stock());
         ApiResult result = this.lms.storeBook(newBook);

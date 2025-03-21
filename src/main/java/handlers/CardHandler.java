@@ -11,13 +11,13 @@ import queries.ApiResult;
 import utils.HttpUtil;
 import entities.Card;
 
-record PostRequest(
+record CardPostRequest(
     @JsonProperty(required = true) String name,
     @JsonProperty(required = true) String department,
     @JsonProperty(required = true) String type
 ) {}
 
-record PutRequest(
+record CardPutRequest(
     @JsonProperty(required = true) int cardId,
     @JsonProperty(required = true) String name,
     @JsonProperty(required = true) String department,
@@ -66,7 +66,7 @@ public class CardHandler implements HttpHandler {
     }
 
     private void handlePostRequest(HttpExchange exchange) throws IOException {
-        PostRequest request = HttpUtil.jsonRequest(exchange, PostRequest.class);
+        CardPostRequest request = HttpUtil.jsonRequest(exchange, CardPostRequest.class);
         log.info("POST /card with body: " + request);
         Card.CardType type = Card.CardType.valueOf(request.type());
         if (type == null) {
@@ -85,8 +85,7 @@ public class CardHandler implements HttpHandler {
     }
 
     private void handlePutRequest(HttpExchange exchange) throws IOException {
-        log.info(exchange.getRequestBody().toString());
-        PutRequest request = HttpUtil.jsonRequest(exchange, PutRequest.class);
+        CardPutRequest request = HttpUtil.jsonRequest(exchange, CardPutRequest.class);
         log.info("PUT /card with query: " + request);
         Card.CardType type = Card.CardType.valueOf(request.type());
         if (type == null) {
