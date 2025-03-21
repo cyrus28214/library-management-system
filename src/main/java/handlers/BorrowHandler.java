@@ -8,6 +8,12 @@ import utils.HttpUtil;
 import java.util.logging.Logger;
 import java.util.Map;
 import queries.ApiResult;
+import entities.Borrow;
+import com.fasterxml.jackson.annotation.JsonProperty;
+record BorrowPostRequest(
+    @JsonProperty(required = true) int bookId,
+    @JsonProperty(required = true) int cardId
+) {};
 
 public class BorrowHandler implements HttpHandler {
     private final Logger log = Logger.getLogger(BorrowHandler.class.getName());
@@ -24,6 +30,9 @@ public class BorrowHandler implements HttpHandler {
         switch (requestMethod) {
             case "GET":
                 this.handleGetRequest(exchange);
+                break;
+            case "POST":
+                this.handlePostRequest(exchange);
                 break;
             default:
                 exchange.sendResponseHeaders(405, -1);
@@ -50,5 +59,14 @@ public class BorrowHandler implements HttpHandler {
             exchange.sendResponseHeaders(400, -1);
             HttpUtil.jsonResponse(exchange, new ApiResult(false, "cardId is not a valid integer"));
         }
+    }
+
+    private void handlePostRequest(HttpExchange exchange) throws IOException {
+        BorrowPostRequest request = HttpUtil.jsonRequest(exchange, BorrowPostRequest.class);
+        log.info("POST /borrow with request body: " + request);
+        Borrow borrow = new Borrow(request.bookId(), request.cardId());
+        ApiResult result = this.lms.borrowBook(borrow);
+        exchange.sendResponseHeaders(200, 0);
+        HttpUtil.jsonResponse(exchange, result);
     }
 }

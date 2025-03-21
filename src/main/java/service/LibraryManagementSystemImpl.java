@@ -412,7 +412,7 @@ public class LibraryManagementSystemImpl implements LibraryManagementSystem {
             ResultSet borrowRs = checkBorrowStmt.executeQuery();
             if (borrowRs.next()) {
                 rollback(conn);
-                return new ApiResult(false, "Book already borrowed");
+                return new ApiResult(false, "图书已被此卡借出，不能重复借书");
             }
 
             // insert the borrow record
