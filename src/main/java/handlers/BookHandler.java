@@ -1,0 +1,67 @@
+package handlers;
+
+import com.sun.net.httpserver.HttpHandler;
+import com.sun.net.httpserver.HttpExchange;
+import java.io.IOException;
+import java.util.logging.Logger;
+import service.LibraryManagementSystem;
+import queries.ApiResult;
+import utils.HttpUtil;
+import queries.BookQueryConditions;
+import entities.Book;
+import com.fasterxml.jackson.annotation.JsonProperty;
+
+record PostRequest(
+    @JsonProperty(required = true) String category,
+    @JsonProperty(required = true) String title,
+    @JsonProperty(required = true) String press,
+    @JsonProperty(required = true) int publishYear,
+    @JsonProperty(required = true) String author,
+    @JsonProperty(required = true) double price,
+    @JsonProperty(required = true) int stock
+) {}
+
+public class BookHandler implements HttpHandler {
+    private final Logger log = Logger.getLogger(CardHandler.class.getName());
+    private final LibraryManagementSystem lms;
+    
+    public BookHandler(LibraryManagementSystem lms) {
+        this.lms = lms;
+    }
+    
+    @Override
+    public void handle(HttpExchange exchange) throws IOException {
+        String requestMethod = exchange.getRequestMethod();
+        try {
+            switch (requestMethod) {
+                case "GET":
+                    this.handleGetRequest(exchange);
+                    break;  
+                case "POST":
+                    this.handlePostRequest(exchange);
+                    break;
+                default:
+                    exchange.sendResponseHeaders(405, -1);
+            }
+        } catch (Exception e) {
+            exchange.sendResponseHeaders(500, 0);
+            log.severe(String.format("%s /book error: %s", requestMethod, e.getMessage()));
+            HttpUtil.jsonResponse(exchange, new ApiResult(false, e.getMessage()));
+        }
+    }
+
+    private void handleGetRequest(HttpExchange exchange) throws IOException {
+        ApiResult result = this.lms.queryBook(new BookQueryConditions());
+        exchange.sendResponseHeaders(200, 0);
+        HttpUtil.jsonResponse(exchange, result);
+    }
+
+    private void handlePostRequest(HttpExchange exchange) throws IOException {
+        PostRequest request = HttpUtil.jsonRequest(exchange, PostRequest.class);
+        log.info("POST /book with body: " + request);
+        Book newBook = new Book(request.category(), request.title(), request.press(), request.publishYear(), request.author(), request.price(), request.stock());
+        ApiResult result = this.lms.storeBook(newBook);
+        exchange.sendResponseHeaders(200, 0);
+        HttpUtil.jsonResponse(exchange, result);
+    }
+}

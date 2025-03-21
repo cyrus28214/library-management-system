@@ -31,7 +31,6 @@ public class BorrowHandler implements HttpHandler {
     }
 
     private void handleGetRequest(HttpExchange exchange) throws IOException {
-        
         String query = exchange.getRequestURI().getQuery();
         Map<String, String> params = HttpUtil.extractParams(query);
         log.info("GET /borrow with params: " + params.toString());

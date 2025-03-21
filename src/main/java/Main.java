@@ -3,6 +3,7 @@ import utils.DatabaseConnector;
 import com.sun.net.httpserver.HttpServer;
 import java.net.InetSocketAddress;
 import handlers.CardHandler;
+import handlers.BookHandler;
 import handlers.BorrowHandler;
 import handlers.CorsFilter;
 import service.LibraryManagementSystem;
@@ -40,6 +41,7 @@ public class Main {
             HttpServer server = HttpServer.create(new InetSocketAddress(8000), 0);
             server.createContext("/card", new CorsFilter(new CardHandler(lms)));
             server.createContext("/borrow", new CorsFilter(new BorrowHandler(lms)));
+            server.createContext("/book", new CorsFilter(new BookHandler(lms)));
             server.start();
             log.info("Server is listening on port 8000");
 
