@@ -3,7 +3,11 @@ import { computed } from 'vue';
 
 const props = defineProps({
     book: Object,
-    isEdit: Boolean
+    isEdit: Boolean,
+    stockMode: {
+        type: Boolean,
+        default: true
+    }
 });
 
 const model = defineModel();
@@ -12,15 +16,23 @@ const model = defineModel();
 const emit = defineEmits(['submit']);
 
 // 表单验证
-const formValid = computed(() => 
-    props.book?.title &&
-    props.book?.category &&
-    props.book?.press &&
-    props.book?.publishYear &&
-    props.book?.author &&
-    props.book?.price &&
-    (props.book?.stock || props.book?.deltaStock)
-);
+const formValid = computed(() => {
+    if (!props.book) return false;
+    
+    const basicValid = props.book.title &&
+        props.book.category &&
+        props.book.press &&
+        props.book.publishYear &&
+        props.book.author &&
+        props.book.price;
+        
+    // 只有在添加图书时才需要验证 stock
+    if (!props.isEdit) {
+        return basicValid && props.book.stock;
+    }
+    
+    return basicValid;
+});
 
 // 关闭对话框
 const handleClose = () => {
@@ -36,11 +48,11 @@ const handleSubmit = () => {
 <template>
     <el-dialog 
         v-model="model"
-        :title="isEdit ? '编辑图书' : '添加图书'"
+        :title="isEdit ? '编辑图书信息' : '添加图书'"
         @update:visible="handleClose" 
         width="30%"
     >
-        <el-form :model="book" label-width="120px">
+        <el-form v-if="book" :model="book" label-width="120px">
             <el-form-item label="图书名称">
                 <el-input v-model="book.title" />
             </el-form-item>
@@ -61,9 +73,6 @@ const handleSubmit = () => {
             </el-form-item>
             <el-form-item v-if="!isEdit" label="库存">
                 <el-input v-model="book.stock" type="number" />
-            </el-form-item>
-            <el-form-item v-if="isEdit" label="库存变化">
-                <el-input v-model="book.deltaStock" type="number" />
             </el-form-item>
             <el-form-item>
                 <el-button type="primary" @click="handleSubmit" :disabled="!formValid">
