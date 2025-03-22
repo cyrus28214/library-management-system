@@ -39,6 +39,21 @@ const borrowBookDialogVisible = ref(false);
 const toReturnBook = ref(null);
 const returnBookDialogVisible = ref(false);
 
+const searchForm = ref({
+    category: '',
+    title: '',
+    press: '',
+    minPublishYear: '',
+    maxPublishYear: '',
+    author: '',
+    minPrice: '',
+    maxPrice: '',
+    sortBy: 'BOOK_ID',
+    sortOrder: 'ASC'
+});
+
+const advancedSearch = ref(false);
+
 const handleApiMessage = (reponse) => {
     if (reponse.data.message !== null) {
         message.value = reponse.data.message;
@@ -47,11 +62,39 @@ const handleApiMessage = (reponse) => {
     }
 }
 
+const resetSearch = () => {
+    searchForm.value = {
+        category: '',
+        title: '',
+        press: '',
+        minPublishYear: '',
+        maxPublishYear: '',
+        author: '',
+        minPrice: '',
+        maxPrice: '',
+        sortBy: 'BOOK_ID',
+        sortOrder: 'ASC'
+    };
+};
+
 const queryBook = async () => {
-    const reponse = await axios.get('/book');
-    handleApiMessage(reponse);
-    if (reponse.data.ok) {
-        books.value = reponse.data.payload.results;
+    const params = {};
+    
+    if (searchForm.value.category) params.category = searchForm.value.category;
+    if (searchForm.value.title) params.title = searchForm.value.title;
+    if (searchForm.value.press) params.press = searchForm.value.press;
+    if (searchForm.value.minPublishYear) params.minPublishYear = searchForm.value.minPublishYear;
+    if (searchForm.value.maxPublishYear) params.maxPublishYear = searchForm.value.maxPublishYear;
+    if (searchForm.value.author) params.author = searchForm.value.author;
+    if (searchForm.value.minPrice) params.minPrice = searchForm.value.minPrice;
+    if (searchForm.value.maxPrice) params.maxPrice = searchForm.value.maxPrice;
+    if (searchForm.value.sortBy) params.sortBy = searchForm.value.sortBy;
+    if (searchForm.value.sortOrder) params.sortOrder = searchForm.value.sortOrder;
+    
+    const response = await axios.get('/book', { params });
+    handleApiMessage(response);
+    if (response.data.ok) {
+        books.value = response.data.payload.results;
     }
 }
 
@@ -205,6 +248,70 @@ onMounted(() => {
                 <el-button type="primary" @click="addBookDialogVisible = true">添加图书</el-button>
                 <el-button type="success" @click="importBookDialogVisible = true">批量导入</el-button>
             </div>
+            
+            <el-card shadow="never">
+                <template #header>
+                    <div class="card-header" style="display: flex; justify-content: space-between;">
+                        <span>筛选条件</span>
+                        <el-button 
+                            type="text" 
+                            @click="advancedSearch = !advancedSearch">
+                            {{ advancedSearch ? '收起' : '展开' }}高级筛选
+                        </el-button>
+                    </div>
+                </template>
+                
+                <el-form :model="searchForm" label-width="100px" inline>
+                    <el-form-item label="图书名称">
+                        <el-input v-model="searchForm.title" placeholder="请输入图书名称" clearable />
+                    </el-form-item>
+                    <el-form-item label="作者">
+                        <el-input v-model="searchForm.author" placeholder="请输入作者" clearable />
+                    </el-form-item>
+                    
+                    <el-collapse-transition>
+                        <div v-show="advancedSearch">
+                            <el-form-item label="图书类别">
+                                <el-input v-model="searchForm.category" placeholder="请输入类别" clearable />
+                            </el-form-item>
+                            <el-form-item label="出版社">
+                                <el-input v-model="searchForm.press" placeholder="请输入出版社" clearable />
+                            </el-form-item>
+                            <el-form-item label="出版年份">
+                                <el-input v-model="searchForm.minPublishYear" placeholder="最小年份" style="width: 100px;" clearable />
+                                <span class="el-input-group__prepend" style="margin: 0 5px;">至</span>
+                                <el-input v-model="searchForm.maxPublishYear" placeholder="最大年份" style="width: 100px;" clearable />
+                            </el-form-item>
+                            <el-form-item label="价格范围">
+                                <el-input v-model="searchForm.minPrice" placeholder="最低价格" style="width: 100px;" clearable />
+                                <span class="el-input-group__prepend" style="margin: 0 5px;">至</span>
+                                <el-input v-model="searchForm.maxPrice" placeholder="最高价格" style="width: 100px;" clearable />
+                            </el-form-item>
+                            <el-form-item label="排序">
+                                <el-select v-model="searchForm.sortBy" placeholder="排序字段">
+                                    <el-option label="图书ID" value="BOOK_ID" />
+                                    <el-option label="类别" value="CATEGORY" />
+                                    <el-option label="书名" value="TITLE" />
+                                    <el-option label="出版社" value="PRESS" />
+                                    <el-option label="出版年份" value="PUBLISH_YEAR" />
+                                    <el-option label="作者" value="AUTHOR" />
+                                    <el-option label="价格" value="PRICE" />
+                                    <el-option label="库存" value="STOCK" />
+                                </el-select>
+                                <el-select v-model="searchForm.sortOrder" style="margin-left: 10px;">
+                                    <el-option label="升序" value="ASC" />
+                                    <el-option label="降序" value="DESC" />
+                                </el-select>
+                            </el-form-item>
+                        </div>
+                    </el-collapse-transition>
+                    
+                    <el-form-item>
+                        <el-button type="primary" @click="queryBook">搜索</el-button>
+                        <el-button @click="resetSearch">重置</el-button>
+                    </el-form-item>
+                </el-form>
+            </el-card>
 
             <el-table :data="books" height="600" :table-layout="'auto'"
                 style="width: 100%; max-width: 80vw;">

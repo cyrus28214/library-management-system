@@ -13,6 +13,7 @@ import com.fasterxml.jackson.annotation.JsonProperty;
 import java.util.Map;
 import java.util.List;
 import java.util.ArrayList;
+import queries.SortOrder;
 
 record BookPostRequest(
     @JsonProperty(required = true) String category,
@@ -104,7 +105,55 @@ public class BookHandler implements HttpHandler {
     }
 
     private void handleGetRequest(HttpExchange exchange) throws IOException {
-        ApiResult result = this.lms.queryBook(new BookQueryConditions());
+        String query = exchange.getRequestURI().getQuery();
+        Map<String, String> params = HttpUtil.extractParams(query);
+        log.info("GET /book with params: " + params.toString());
+        BookQueryConditions conditions = new BookQueryConditions();
+        try {
+            if (params.containsKey("category")) {
+                conditions.setCategory(params.get("category"));
+            }
+            if (params.containsKey("title")) {
+                conditions.setTitle(params.get("title"));
+            }
+            if (params.containsKey("press")) {
+                conditions.setPress(params.get("press"));
+            }
+            if (params.containsKey("minPublishYear")) {
+                int minPublishYear = Integer.parseInt(params.get("minPublishYear"));
+                conditions.setMinPublishYear(minPublishYear);
+            }
+            if (params.containsKey("maxPublishYear")) {
+                int maxPublishYear = Integer.parseInt(params.get("maxPublishYear"));
+                conditions.setMaxPublishYear(maxPublishYear);
+            }
+            if (params.containsKey("author")) {
+                conditions.setAuthor(params.get("author"));
+            }
+            if (params.containsKey("minPrice")) {
+                double minPrice = Double.parseDouble(params.get("minPrice"));
+                conditions.setMinPrice(minPrice);
+            }
+            if (params.containsKey("maxPrice")) {
+                double maxPrice = Double.parseDouble(params.get("maxPrice"));
+                conditions.setMaxPrice(maxPrice);
+            }
+        } catch (NumberFormatException e) {
+            exchange.sendResponseHeaders(400, 0);
+            HttpUtil.jsonResponse(exchange, new ApiResult(false, "数字格式不正确"));
+        }
+        try {
+            if (params.containsKey("sortBy")) {
+                conditions.setSortBy(Book.SortColumn.valueOf(params.get("sortBy")));
+            }
+            if (params.containsKey("sortOrder")) {
+                conditions.setSortOrder(SortOrder.valueOf(params.get("sortOrder")));
+            }
+        } catch (IllegalArgumentException e) {
+            exchange.sendResponseHeaders(400, 0);
+            HttpUtil.jsonResponse(exchange, new ApiResult(false, "排序格式不正确"));
+        }
+        ApiResult result = this.lms.queryBook(conditions);
         exchange.sendResponseHeaders(200, 0);
         HttpUtil.jsonResponse(exchange, result);
     }
