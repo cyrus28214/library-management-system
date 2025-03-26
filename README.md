@@ -21,3 +21,7 @@
 ### 文档
 
 [ApiFox文档](https://w49pxtebrt.apifox.cn)
+
+### 注
+
+由于我实现了修改借书卡信息的功能，我在`LibraryTest.java`中添加了新的单元测试`modifyCardInfoTest`，其他测试方法均未改动。

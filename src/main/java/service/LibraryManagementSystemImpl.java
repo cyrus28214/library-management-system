@@ -34,7 +34,7 @@ public class LibraryManagementSystemImpl implements LibraryManagementSystem {
             checkStmt.setString(5, book.getAuthor());
             ResultSet checkRs = checkStmt.executeQuery();
             if (checkRs.next() && checkRs.getInt(1) > 0) {
-                return new ApiResult(false, "Book already exists");
+                return new ApiResult(false, "图书已存在");
             }
 
             // if the book does not exist, insert it
