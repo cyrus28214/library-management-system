@@ -161,6 +161,12 @@ public class BookHandler implements HttpHandler {
     private void handlePostRequest(HttpExchange exchange) throws IOException {
         BookPostRequest request = HttpUtil.jsonRequest(exchange, BookPostRequest.class);
         log.info("POST /book with body: " + request);
+        // stock must be greater than 0
+        if (request.stock() <= 0) {
+            exchange.sendResponseHeaders(400, 0);
+            HttpUtil.jsonResponse(exchange, new ApiResult(false, "库存不能为负"));
+            return;
+        }
         Book newBook = new Book(request.category(), request.title(), request.press(), request.publishYear(), request.author(), request.price(), request.stock());
         ApiResult result = this.lms.storeBook(newBook);
         exchange.sendResponseHeaders(200, 0);
