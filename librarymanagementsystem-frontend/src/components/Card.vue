@@ -30,7 +30,7 @@ const modifyCardVisible = ref(false); // 修改信息对话框可见性
 const toModifyInfo = ref({});
 
 const message = ref(null);
-const messageVisible = computed(() => message.value !== null);
+const messageVisible = ref(false);
 
 const ConfirmNewCard = async () => {
     // 发出POST请求
@@ -57,6 +57,7 @@ const ConfirmModifyCard = async () => {
     });
     if (reponse.data.message !== null) {
         console.log(reponse.data.message);
+        messageVisible.value = true;
         message.value = reponse.data.message;
     }
     modifyCardVisible.value = false;
@@ -69,6 +70,7 @@ const ConfirmRemoveCard = async () => {
     } });
     if (reponse.data.message !== null) {
         console.log(reponse.data.message);
+        messageVisible.value = true;
         message.value = reponse.data.message;
     }
     removeCardVisible.value = false;
@@ -241,11 +243,11 @@ onMounted(() => {
         </el-dialog>
 
         <!-- 信息对话框 -->  
-        <el-dialog :visible="messageVisible" width="30%" align-center>
+        <el-dialog v-model="messageVisible" width="30%" align-center>
             <span>{{ message }}</span>
             <template #footer>
                 <span class="dialog-footer">
-                    <el-button @click="message = null">确定</el-button>
+                    <el-button @click="messageVisible = false">确定</el-button>
                 </span>
             </template>
         </el-dialog>
