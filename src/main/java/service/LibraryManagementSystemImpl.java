@@ -381,6 +381,16 @@ public class LibraryManagementSystemImpl implements LibraryManagementSystem {
     public ApiResult borrowBook(Borrow borrow) {
         Connection conn = connector.getConn();
         try {
+
+            String checkCardSql = "SELECT card_id FROM card WHERE card_id = ?";
+            PreparedStatement checkCardStmt = conn.prepareStatement(checkCardSql);
+            checkCardStmt.setInt(1, borrow.getCardId());
+            ResultSet cardRs = checkCardStmt.executeQuery();
+            if (!cardRs.next()) {
+                rollback(conn);
+                return new ApiResult(false, "此卡不存在");
+            }
+
             String checkBookSql = "SELECT stock FROM book WHERE book_id = ? FOR UPDATE";
             PreparedStatement checkBookStmt = conn.prepareStatement(checkBookSql);
             checkBookStmt.setInt(1, borrow.getBookId());
@@ -393,15 +403,6 @@ public class LibraryManagementSystemImpl implements LibraryManagementSystem {
             if (stock <= 0) {
                 rollback(conn);
                 return new ApiResult(false, "图书库存不足");
-            }
-
-            String checkCardSql = "SELECT card_id FROM card WHERE card_id = ?";
-            PreparedStatement checkCardStmt = conn.prepareStatement(checkCardSql);
-            checkCardStmt.setInt(1, borrow.getCardId());
-            ResultSet cardRs = checkCardStmt.executeQuery();
-            if (!cardRs.next()) {
-                rollback(conn);
-                return new ApiResult(false, "此卡不存在");
             }
 
             // check if the book has been borrowed

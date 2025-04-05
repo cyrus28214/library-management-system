@@ -98,7 +98,6 @@ public class BookHandler implements HttpHandler {
             }
         } catch (Exception e) {
             exchange.sendResponseHeaders(500, 0);
-            e.printStackTrace();
             log.severe(e.getMessage());
             HttpUtil.jsonResponse(exchange, new ApiResult(false, e.getMessage()));
         }
